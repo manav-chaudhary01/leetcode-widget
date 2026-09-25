@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LeetCodeDesktopWidget/LeetCodeDesktopWidget.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LeetCodeDesktopWidget.Tests/LeetCodeDesktopWidget.Tests.csproj" />
+  </Folder>
+</Solution>
