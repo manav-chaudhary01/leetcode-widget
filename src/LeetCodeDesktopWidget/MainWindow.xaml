@@ -1,12 +1,90 @@
-﻿<Window x:Class="LeetCodeDesktopWidget.MainWindow"
+<Window x:Class="LeetCodeDesktopWidget.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:LeetCodeDesktopWidget"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="LeetCode Desktop Widget"
+        Height="220" Width="440"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Topmost="False"
+        WindowStartupLocation="Manual"
+        Left="80" Top="80">
 
-    </Grid>
+    <Border Background="#E60D1117"
+            BorderBrush="#30363D"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="16"
+            SnapsToDevicePixels="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <DockPanel Grid.Row="0" Margin="0,0,0,12">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Ellipse Width="10" Height="10" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="LEETCODE ACTIVITY" 
+                               FontSize="12" 
+                               FontWeight="Bold" 
+                               Foreground="#8B949E" 
+                               FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
+                </StackPanel>
+                <TextBlock x:Name="HostTypeTextBlock" 
+                           Text="Desktop Layer" 
+                           FontSize="11" 
+                           Foreground="#58A6FF" 
+                           HorizontalAlignment="Right"
+                           FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
+            </DockPanel>
+
+            <!-- Integration Status & Verification Panel -->
+            <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,8">
+                <Grid Margin="0,2">
+                    <TextBlock Text="Hosting Mode:" FontSize="12" Foreground="#C9D1D9"/>
+                    <TextBlock x:Name="HostingModeValue" Text="Discovering..." FontSize="12" FontWeight="SemiBold" Foreground="#3FB950" HorizontalAlignment="Right"/>
+                </Grid>
+                <Grid Margin="0,2">
+                    <TextBlock Text="Z-Order Level:" FontSize="12" Foreground="#C9D1D9"/>
+                    <TextBlock x:Name="ZOrderValue" Text="Behind Application Windows" FontSize="12" Foreground="#8B949E" HorizontalAlignment="Right"/>
+                </Grid>
+                <Grid Margin="0,2">
+                    <TextBlock Text="Alt+Tab Exclusion:" FontSize="12" Foreground="#C9D1D9"/>
+                    <TextBlock x:Name="AltTabValue" Text="WS_EX_TOOLWINDOW Active" FontSize="12" Foreground="#8B949E" HorizontalAlignment="Right"/>
+                </Grid>
+                <Grid Margin="0,2">
+                    <TextBlock Text="Focus Preservation:" FontSize="12" Foreground="#C9D1D9"/>
+                    <TextBlock x:Name="FocusPreservationValue" Text="WS_EX_NOACTIVATE Active" FontSize="12" Foreground="#8B949E" HorizontalAlignment="Right"/>
+                </Grid>
+            </StackPanel>
+
+            <!-- Footer / Interactivity Test -->
+            <DockPanel Grid.Row="2" Margin="0,4,0,0">
+                <TextBlock x:Name="ClickFeedbackText" 
+                           Text="Click button to test non-activating input:" 
+                           FontSize="11" 
+                           Foreground="#8B949E" 
+                           VerticalAlignment="Center"/>
+                <Button x:Name="TestButton" 
+                        Content="Test Click (0)" 
+                        Click="OnTestButtonClicked"
+                        Padding="8,3" 
+                        Background="#21262D" 
+                        Foreground="#C9D1D9" 
+                        BorderBrush="#30363D" 
+                        FontSize="11" 
+                        HorizontalAlignment="Right"
+                        Focusable="False"
+                        Cursor="Hand"/>
+            </DockPanel>
+        </Grid>
+    </Border>
 </Window>

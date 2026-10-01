@@ -84,7 +84,7 @@ dotnet test
 ## Roadmap
 
 - [x] **Milestone 0**: Environment setup, project structure, build & test infrastructure.
-- [ ] **Milestone 1**: Desktop wallpaper layer Win32 integration prototype.
+- [x] **Milestone 1**: Desktop wallpaper layer Win32 integration prototype.
 - [ ] **Milestone 2**: Minimalist heatmap UI and contribution grid rendering.
 - [ ] **Milestone 3**: LeetCode GraphQL client and submission calendar parsing.
 - [ ] **Milestone 4**: Streak calculation and problem-solving statistics.
