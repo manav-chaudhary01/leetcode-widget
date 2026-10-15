@@ -6,12 +6,11 @@ using LeetCodeDesktopWidget.Desktop;
 namespace LeetCodeDesktopWidget;
 
 /// <summary>
-/// Interaction logic for MainWindow.xaml - Desktop Widget Prototype.
+/// Interaction logic for MainWindow.xaml - Desktop Heatmap Widget.
 /// </summary>
 public partial class MainWindow : Window
 {
     private DesktopWindowManager? _desktopManager;
-    private int _clickCount;
 
     public DesktopWindowManager? DesktopManager => _desktopManager;
 
@@ -29,46 +28,33 @@ public partial class MainWindow : Window
         _desktopManager.DisplayChanged += OnDisplayChanged;
         _desktopManager.AttachToDesktop();
 
-        UpdateStatusDisplay();
+        UpdateHostStatusBadge();
     }
 
-    private void UpdateStatusDisplay()
+    private void UpdateHostStatusBadge()
     {
         if (_desktopManager == null) return;
 
         var host = _desktopManager.CurrentHostInfo;
-        HostingModeValue.Text = host.HostType switch
+        HostStatusBadge.Text = host.HostType switch
         {
-            DesktopHostType.WorkerW => $"WorkerW (0x{host.TargetParentHandle.ToInt64():X})",
-            DesktopHostType.Progman => $"Progman (0x{host.TargetParentHandle.ToInt64():X})",
-            _ => "Bottom-Pinned Fallback"
+            DesktopHostType.WorkerW => "Desktop Layer (WorkerW)",
+            DesktopHostType.Progman => "Desktop Layer (Progman)",
+            _ => "Z-Order Bottom"
         };
-
-        HostTypeTextBlock.Text = host.IsAttached ? "Desktop Child Window" : "Z-Order Bottom";
     }
 
     private void OnExplorerRestarted()
     {
-        Dispatcher.Invoke(() =>
-        {
-            UpdateStatusDisplay();
-        });
+        Dispatcher.Invoke(UpdateHostStatusBadge);
     }
 
     private void OnDisplayChanged()
     {
         Dispatcher.Invoke(() =>
         {
-            // Keep widget pinned at bottom upon display/DPI adjustments
             _desktopManager?.SendToBottom();
         });
-    }
-
-    private void OnTestButtonClicked(object sender, RoutedEventArgs e)
-    {
-        _clickCount++;
-        TestButton.Content = $"Test Click ({_clickCount})";
-        ClickFeedbackText.Text = $"Input received without focus steal! Count: {_clickCount}";
     }
 
     protected override void OnClosed(EventArgs e)

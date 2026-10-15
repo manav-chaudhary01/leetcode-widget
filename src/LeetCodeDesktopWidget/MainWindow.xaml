@@ -3,9 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:LeetCodeDesktopWidget.Views"
+        xmlns:vm="clr-namespace:LeetCodeDesktopWidget.ViewModels"
         mc:Ignorable="d"
         Title="LeetCode Desktop Widget"
-        Height="220" Width="440"
+        Height="225" Width="830"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -13,13 +15,31 @@
         ResizeMode="NoResize"
         Topmost="False"
         WindowStartupLocation="Manual"
-        Left="80" Top="80">
+        Left="60" Top="60">
 
-    <Border Background="#E60D1117"
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <Window.Resources>
+        <!-- Dark minimalist ComboBox style -->
+        <Style x:Key="DarkYearComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="#21262D"/>
+            <Setter Property="Foreground" Value="#C9D1D9"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI, sans-serif"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="#F00D1117"
             BorderBrush="#30363D"
             BorderThickness="1"
             CornerRadius="10"
-            Padding="16"
+            Padding="14,12"
             SnapsToDevicePixels="True">
         <Grid>
             <Grid.RowDefinitions>
@@ -28,62 +48,69 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <DockPanel Grid.Row="0" Margin="0,0,0,12">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                    <Ellipse Width="10" Height="10" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center"/>
+            <!-- Header: Title, Desktop Status, & Year Selector -->
+            <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <Ellipse Width="9" Height="9" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock Text="LEETCODE ACTIVITY" 
-                               FontSize="12" 
+                               FontSize="11.5" 
                                FontWeight="Bold" 
                                Foreground="#8B949E" 
+                               FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
+                               VerticalAlignment="Center"/>
+                    <TextBlock x:Name="HostStatusBadge" 
+                               Text="Desktop Layer" 
+                               FontSize="10" 
+                               Foreground="#58A6FF" 
+                               Margin="12,0,0,0"
+                               VerticalAlignment="Center"
                                FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
                 </StackPanel>
-                <TextBlock x:Name="HostTypeTextBlock" 
-                           Text="Desktop Layer" 
-                           FontSize="11" 
-                           Foreground="#58A6FF" 
-                           HorizontalAlignment="Right"
-                           FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
+
+                <!-- Year Selector & Stats -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SummaryStatsText}" 
+                               FontSize="11" 
+                               Foreground="#8B949E" 
+                               Margin="0,0,14,0" 
+                               VerticalAlignment="Center"
+                               FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
+
+                    <ComboBox ItemsSource="{Binding AvailableYears}"
+                              SelectedItem="{Binding SelectedYear}"
+                              Style="{StaticResource DarkYearComboBox}"
+                              Width="75"
+                              Focusable="False"/>
+                </StackPanel>
             </DockPanel>
 
-            <!-- Integration Status & Verification Panel -->
-            <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,8">
-                <Grid Margin="0,2">
-                    <TextBlock Text="Hosting Mode:" FontSize="12" Foreground="#C9D1D9"/>
-                    <TextBlock x:Name="HostingModeValue" Text="Discovering..." FontSize="12" FontWeight="SemiBold" Foreground="#3FB950" HorizontalAlignment="Right"/>
-                </Grid>
-                <Grid Margin="0,2">
-                    <TextBlock Text="Z-Order Level:" FontSize="12" Foreground="#C9D1D9"/>
-                    <TextBlock x:Name="ZOrderValue" Text="Behind Application Windows" FontSize="12" Foreground="#8B949E" HorizontalAlignment="Right"/>
-                </Grid>
-                <Grid Margin="0,2">
-                    <TextBlock Text="Alt+Tab Exclusion:" FontSize="12" Foreground="#C9D1D9"/>
-                    <TextBlock x:Name="AltTabValue" Text="WS_EX_TOOLWINDOW Active" FontSize="12" Foreground="#8B949E" HorizontalAlignment="Right"/>
-                </Grid>
-                <Grid Margin="0,2">
-                    <TextBlock Text="Focus Preservation:" FontSize="12" Foreground="#C9D1D9"/>
-                    <TextBlock x:Name="FocusPreservationValue" Text="WS_EX_NOACTIVATE Active" FontSize="12" Foreground="#8B949E" HorizontalAlignment="Right"/>
-                </Grid>
-            </StackPanel>
+            <!-- Heatmap Grid Canvas -->
+            <views:HeatmapControl Grid.Row="1"
+                                  Activity="{Binding CurrentActivity}"
+                                  HoveredSubmission="{Binding HoveredDay, Mode=TwoWay}"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"/>
 
-            <!-- Footer / Interactivity Test -->
-            <DockPanel Grid.Row="2" Margin="0,4,0,0">
-                <TextBlock x:Name="ClickFeedbackText" 
-                           Text="Click button to test non-activating input:" 
+            <!-- Footer: Hover Information & Activity Level Legend -->
+            <DockPanel Grid.Row="2" Margin="0,8,0,0">
+                <!-- Hover Date / Count Feedback -->
+                <TextBlock Text="{Binding HoverInfoText}" 
                            FontSize="11" 
                            Foreground="#8B949E" 
-                           VerticalAlignment="Center"/>
-                <Button x:Name="TestButton" 
-                        Content="Test Click (0)" 
-                        Click="OnTestButtonClicked"
-                        Padding="8,3" 
-                        Background="#21262D" 
-                        Foreground="#C9D1D9" 
-                        BorderBrush="#30363D" 
-                        FontSize="11" 
-                        HorizontalAlignment="Right"
-                        Focusable="False"
-                        Cursor="Hand"/>
+                           DockPanel.Dock="Left"
+                           VerticalAlignment="Center"
+                           FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
+
+                <!-- 5-Level Contribution Legend -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Less" FontSize="10" Foreground="#6E7681" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <Rectangle Width="10" Height="10" RadiusX="2" RadiusY="2" Fill="#161B22" Stroke="#21262D" StrokeThickness="0.5" Margin="2,0"/>
+                    <Rectangle Width="10" Height="10" RadiusX="2" RadiusY="2" Fill="#0E4429" Margin="2,0"/>
+                    <Rectangle Width="10" Height="10" RadiusX="2" RadiusY="2" Fill="#006D32" Margin="2,0"/>
+                    <Rectangle Width="10" Height="10" RadiusX="2" RadiusY="2" Fill="#26A641" Margin="2,0"/>
+                    <Rectangle Width="10" Height="10" RadiusX="2" RadiusY="2" Fill="#39D353" Margin="2,0"/>
+                    <TextBlock Text="More" FontSize="10" Foreground="#6E7681" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
             </DockPanel>
         </Grid>
     </Border>
