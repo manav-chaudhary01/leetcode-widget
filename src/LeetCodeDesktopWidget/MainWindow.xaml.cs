@@ -36,12 +36,18 @@ public partial class MainWindow : Window
         if (_desktopManager == null) return;
 
         var host = _desktopManager.CurrentHostInfo;
-        HostStatusBadge.Text = host.HostType switch
+        string statusText = host.HostType switch
         {
             DesktopHostType.WorkerW => "Desktop Layer (WorkerW)",
             DesktopHostType.Progman => "Desktop Layer (Progman)",
             _ => "Z-Order Bottom"
         };
+
+        Title = $"LeetCode Desktop Widget - {statusText}";
+        if (DesktopStatusDot != null)
+        {
+            DesktopStatusDot.ToolTip = statusText;
+        }
     }
 
     private void OnExplorerRestarted()

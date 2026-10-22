@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:LeetCodeDesktopWidget.Views"
         xmlns:vm="clr-namespace:LeetCodeDesktopWidget.ViewModels"
+        xmlns:helpers="clr-namespace:LeetCodeDesktopWidget.Helpers"
         mc:Ignorable="d"
         Title="LeetCode Desktop Widget"
-        Height="225" Width="830"
+        Height="235" Width="830"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -22,7 +23,10 @@
     </Window.DataContext>
 
     <Window.Resources>
-        <!-- Dark minimalist ComboBox style -->
+        <helpers:BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <helpers:BooleanToVisibilityConverter x:Key="InverseBoolToVis" Invert="True"/>
+
+        <!-- Dark minimal ComboBox -->
         <Style x:Key="DarkYearComboBox" TargetType="ComboBox">
             <Setter Property="Background" Value="#21262D"/>
             <Setter Property="Foreground" Value="#C9D1D9"/>
@@ -30,8 +34,21 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI, sans-serif"/>
-            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Padding" Value="6,2"/>
             <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Dark minimal Button -->
+        <Style x:Key="DarkIconButton" TargetType="Button">
+            <Setter Property="Background" Value="#21262D"/>
+            <Setter Property="Foreground" Value="#C9D1D9"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI, sans-serif"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
         </Style>
     </Window.Resources>
 
@@ -48,39 +65,94 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header: Title, Desktop Status, & Year Selector -->
+            <!-- Header: Title, Username Configuration, Stats & Controls -->
             <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                <!-- Left: Branding & Username -->
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <Ellipse Width="9" Height="9" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="LEETCODE ACTIVITY" 
+                    <Ellipse x:Name="DesktopStatusDot" Width="9" Height="9" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
+                    <TextBlock Text="LEETCODE" 
                                FontSize="11.5" 
                                FontWeight="Bold" 
                                Foreground="#8B949E" 
                                FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
                                VerticalAlignment="Center"/>
-                    <TextBlock x:Name="HostStatusBadge" 
-                               Text="Desktop Layer" 
-                               FontSize="10" 
-                               Foreground="#58A6FF" 
-                               Margin="12,0,0,0"
-                               VerticalAlignment="Center"
-                               FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
+
+                    <!-- Username Display Mode -->
+                    <StackPanel Orientation="Horizontal" 
+                                Visibility="{Binding IsEditingUsername, Converter={StaticResource InverseBoolToVis}}"
+                                Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Username, TargetNullValue='@configure-user', FallbackValue='@configure-user'}" 
+                                   FontSize="11" 
+                                   Foreground="#58A6FF" 
+                                   VerticalAlignment="Center"
+                                   Cursor="Hand">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Gesture="LeftClick" Command="{Binding ToggleEditUsernameCommand}"/>
+                            </TextBlock.InputBindings>
+                        </TextBlock>
+                        <Button Content="✎" 
+                                Command="{Binding ToggleEditUsernameCommand}" 
+                                ToolTip="Change LeetCode Username"
+                                Style="{StaticResource DarkIconButton}" 
+                                Margin="6,0,0,0" 
+                                Padding="4,1"
+                                FontSize="9"/>
+                    </StackPanel>
+
+                    <!-- Username Edit Mode -->
+                    <StackPanel Orientation="Horizontal" 
+                                Visibility="{Binding IsEditingUsername, Converter={StaticResource BoolToVis}}"
+                                Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
+                                 Width="110" 
+                                 FontSize="11" 
+                                 Background="#161B22" 
+                                 Foreground="#C9D1D9" 
+                                 BorderBrush="#30363D" 
+                                 Padding="4,2"/>
+                        <Button Content="✓" 
+                                Command="{Binding SaveUsernameCommand}" 
+                                Style="{StaticResource DarkIconButton}" 
+                                Margin="4,0,0,0" 
+                                Padding="6,1"/>
+                    </StackPanel>
                 </StackPanel>
 
-                <!-- Year Selector & Stats -->
+                <!-- Right: Stats Badges, Year Selector & Sync Button -->
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding SummaryStatsText}" 
-                               FontSize="11" 
-                               Foreground="#8B949E" 
-                               Margin="0,0,14,0" 
-                               VerticalAlignment="Center"
-                               FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
+                    <!-- Solved Count Badge -->
+                    <Border Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Solved: " FontSize="10.5" Foreground="#8B949E"/>
+                            <TextBlock Text="{Binding TotalSolved}" FontSize="10.5" FontWeight="SemiBold" Foreground="#3FB950"/>
+                        </StackPanel>
+                    </Border>
 
+                    <!-- Streak Badge -->
+                    <Border Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Streak: " FontSize="10.5" Foreground="#8B949E"/>
+                            <TextBlock Text="{Binding CurrentStreak}" FontSize="10.5" FontWeight="SemiBold" Foreground="#D29922"/>
+                            <TextBlock Text="d" FontSize="10.5" Foreground="#8B949E"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Year Dropdown -->
                     <ComboBox ItemsSource="{Binding AvailableYears}"
                               SelectedItem="{Binding SelectedYear}"
                               Style="{StaticResource DarkYearComboBox}"
-                              Width="75"
+                              Width="72"
+                              Margin="0,0,6,0"
                               Focusable="False"/>
+
+                    <!-- Refresh Button -->
+                    <Button Content="↻" 
+                            Command="{Binding RefreshCommand}" 
+                            IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
+                            ToolTip="Refresh from LeetCode"
+                            Style="{StaticResource DarkIconButton}" 
+                            Padding="7,2" 
+                            FontWeight="Bold"/>
                 </StackPanel>
             </DockPanel>
 
@@ -91,13 +163,21 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"/>
 
-            <!-- Footer: Hover Information & Activity Level Legend -->
+            <!-- Footer: Hover Feedback, Sync Timestamp & 5-Level Legend -->
             <DockPanel Grid.Row="2" Margin="0,8,0,0">
                 <!-- Hover Date / Count Feedback -->
                 <TextBlock Text="{Binding HoverInfoText}" 
                            FontSize="11" 
                            Foreground="#8B949E" 
                            DockPanel.Dock="Left"
+                           VerticalAlignment="Center"
+                           FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
+
+                <!-- Sync Status / Last Sync Time -->
+                <TextBlock Text="{Binding SyncStatusText}" 
+                           FontSize="10" 
+                           Foreground="#6E7681" 
+                           HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
 
