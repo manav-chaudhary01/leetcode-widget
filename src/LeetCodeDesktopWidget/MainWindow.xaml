@@ -8,7 +8,7 @@
         xmlns:helpers="clr-namespace:LeetCodeDesktopWidget.Helpers"
         mc:Ignorable="d"
         Title="LeetCode Desktop Widget"
-        Height="235" Width="830"
+        Height="275" Width="845"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -63,10 +63,11 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header: Title, Username Configuration, Stats & Controls -->
-            <DockPanel Grid.Row="0" Margin="0,0,0,10">
+            <!-- Row 0: Header with Username, All-Time Solved Breakdown, and Streaks -->
+            <DockPanel Grid.Row="0" Margin="0,0,0,8">
                 <!-- Left: Branding & Username -->
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                     <Ellipse x:Name="DesktopStatusDot" Width="9" Height="9" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
@@ -118,22 +119,31 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Right: Stats Badges, Year Selector & Sync Button -->
+                <!-- Right: All-time Stats Badges & Controls -->
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <!-- Solved Count Badge -->
+                    <!-- Difficulty Breakdown Badge -->
                     <Border Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Solved: " FontSize="10.5" Foreground="#8B949E"/>
-                            <TextBlock Text="{Binding TotalSolved}" FontSize="10.5" FontWeight="SemiBold" Foreground="#3FB950"/>
+                            <TextBlock Text="{Binding TotalSolved}" FontSize="10.5" FontWeight="SemiBold" Foreground="#C9D1D9" Margin="0,0,6,0"/>
+                            <TextBlock Text="E:" FontSize="10" Foreground="#8B949E"/>
+                            <TextBlock Text="{Binding EasySolved}" FontSize="10" Foreground="#3FB950" Margin="1,0,5,0"/>
+                            <TextBlock Text="M:" FontSize="10" Foreground="#8B949E"/>
+                            <TextBlock Text="{Binding MediumSolved}" FontSize="10" Foreground="#D29922" Margin="1,0,5,0"/>
+                            <TextBlock Text="H:" FontSize="10" Foreground="#8B949E"/>
+                            <TextBlock Text="{Binding HardSolved}" FontSize="10" Foreground="#F85149" Margin="1,0,0,0"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- Streak Badge -->
+                    <!-- All-time Current & Longest Streak -->
                     <Border Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Streak: " FontSize="10.5" Foreground="#8B949E"/>
                             <TextBlock Text="{Binding CurrentStreak}" FontSize="10.5" FontWeight="SemiBold" Foreground="#D29922"/>
-                            <TextBlock Text="d" FontSize="10.5" Foreground="#8B949E"/>
+                            <TextBlock Text="d " FontSize="10.5" Foreground="#8B949E"/>
+                            <TextBlock Text="(Max: " FontSize="10" Foreground="#6E7681"/>
+                            <TextBlock Text="{Binding LongestStreak}" FontSize="10" Foreground="#E3B341"/>
+                            <TextBlock Text="d)" FontSize="10" Foreground="#6E7681"/>
                         </StackPanel>
                     </Border>
 
@@ -156,28 +166,57 @@
                 </StackPanel>
             </DockPanel>
 
-            <!-- Heatmap Grid Canvas -->
+            <!-- Row 1: Heatmap Grid Canvas -->
             <views:HeatmapControl Grid.Row="1"
                                   Activity="{Binding CurrentActivity}"
                                   HoveredSubmission="{Binding HoveredDay, Mode=TwoWay}"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"/>
 
-            <!-- Footer: Hover Feedback, Sync Timestamp & 5-Level Legend -->
-            <DockPanel Grid.Row="2" Margin="0,8,0,0">
+            <!-- Row 2: Selected-Year Detailed Statistics Strip -->
+            <Border Grid.Row="2" Margin="0,6,0,0" Padding="0,3" BorderBrush="#21262D" BorderThickness="0,1,0,0">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding SelectedYear}" FontSize="10.5" FontWeight="SemiBold" Foreground="#58A6FF"/>
+                        <TextBlock Text=" Activity:" FontSize="10.5" Foreground="#8B949E" Margin="0,0,8,0"/>
+
+                        <TextBlock Text="{Binding YearSubmissions}" FontSize="10.5" FontWeight="SemiBold" Foreground="#C9D1D9"/>
+                        <TextBlock Text=" submissions  •  " FontSize="10.5" Foreground="#6E7681"/>
+
+                        <TextBlock Text="{Binding YearActiveDays}" FontSize="10.5" FontWeight="SemiBold" Foreground="#C9D1D9"/>
+                        <TextBlock Text=" active days  •  " FontSize="10.5" Foreground="#6E7681"/>
+
+                        <TextBlock Text="Avg " FontSize="10" Foreground="#6E7681"/>
+                        <TextBlock Text="{Binding YearAverageText}" FontSize="10.5" FontWeight="SemiBold" Foreground="#C9D1D9"/>
+                        <TextBlock Text="/day  •  " FontSize="10" Foreground="#6E7681"/>
+
+                        <TextBlock Text="Best: " FontSize="10" Foreground="#6E7681"/>
+                        <TextBlock Text="{Binding MostActiveDayText}" FontSize="10.5" FontWeight="SemiBold" Foreground="#3FB950"/>
+                        <TextBlock Text="  •  " FontSize="10" Foreground="#6E7681"/>
+
+                        <TextBlock Text="Year Streak: " FontSize="10" Foreground="#6E7681"/>
+                        <TextBlock Text="{Binding YearLongestStreak}" FontSize="10.5" FontWeight="SemiBold" Foreground="#D29922"/>
+                        <TextBlock Text="d" FontSize="10.5" Foreground="#8B949E"/>
+                    </StackPanel>
+
+                    <!-- Sync Status / Last Sync Time -->
+                    <TextBlock Text="{Binding SyncStatusText}" 
+                               FontSize="10" 
+                               Foreground="#6E7681" 
+                               DockPanel.Dock="Right"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
+                </DockPanel>
+            </Border>
+
+            <!-- Row 3: Footer: Hover Feedback & 5-Level Legend -->
+            <DockPanel Grid.Row="3" Margin="0,6,0,0">
                 <!-- Hover Date / Count Feedback -->
                 <TextBlock Text="{Binding HoverInfoText}" 
                            FontSize="11" 
                            Foreground="#8B949E" 
                            DockPanel.Dock="Left"
-                           VerticalAlignment="Center"
-                           FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
-
-                <!-- Sync Status / Last Sync Time -->
-                <TextBlock Text="{Binding SyncStatusText}" 
-                           FontSize="10" 
-                           Foreground="#6E7681" 
-                           HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
 

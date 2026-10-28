@@ -87,7 +87,7 @@ dotnet test
 - [x] **Milestone 1**: Desktop wallpaper layer Win32 integration prototype.
 - [x] **Milestone 2**: Minimalist heatmap UI and contribution grid rendering.
 - [x] **Milestone 3**: LeetCode GraphQL client and submission calendar parsing.
-- [ ] **Milestone 4**: Streak calculation and problem-solving statistics.
+- [x] **Milestone 4**: Streak calculation and problem-solving statistics.
 - [ ] **Milestone 5**: Local caching, periodic background refresh, and idle performance optimization.
 - [ ] **Milestone 6**: Widget customization, positioning, and Windows packaging.
 

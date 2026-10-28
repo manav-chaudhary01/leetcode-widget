@@ -26,6 +26,10 @@ public class MainViewModel : INotifyPropertyChanged
     private bool _isSyncing;
     private string _syncStatusText = "Not synced";
     private LeetCodeUserStats? _lastSuccessfulStats;
+    private StreakInfo _streaks = StreakInfo.Empty;
+    private YearlyStatistics _currentYearStats;
+
+    public DateOnly? ReferenceDate { get; set; }
 
     public ObservableCollection<int> AvailableYears { get; } = new();
 
@@ -125,11 +129,25 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    // All-time Solved Counts
     public int TotalSolved => _lastSuccessfulStats?.TotalSolved ?? 0;
     public int EasySolved => _lastSuccessfulStats?.EasySolved ?? 0;
     public int MediumSolved => _lastSuccessfulStats?.MediumSolved ?? 0;
     public int HardSolved => _lastSuccessfulStats?.HardSolved ?? 0;
-    public int CurrentStreak => _lastSuccessfulStats?.CurrentStreak ?? 0;
+    public bool HasSolvedStats => _lastSuccessfulStats != null;
+
+    // All-time Calculated Streaks (computed purely from daily submissions)
+    public int CurrentStreak => _streaks.CurrentStreak;
+    public int LongestStreak => _streaks.LongestStreak;
+
+    // Selected-Year Statistics
+    public YearlyStatistics CurrentYearStats => _currentYearStats;
+    public int YearSubmissions => _currentYearStats.TotalSubmissions;
+    public int YearActiveDays => _currentYearStats.ActiveDays;
+    public string YearAverageText => _currentYearStats.ActiveDays > 0 ? $"{_currentYearStats.AveragePerActiveDay:F1}" : "0";
+    public string MostActiveDayText => _currentYearStats.MostActiveDay?.ToString() ?? "None";
+    public int YearLongestStreak => _currentYearStats.LongestStreak;
+
     public int TotalSubmissions => _currentActivity?.TotalSubmissions ?? 0;
     public int ActiveDays => _currentActivity?.ActiveDays ?? 0;
 
@@ -146,6 +164,7 @@ public class MainViewModel : INotifyPropertyChanged
         _leetCodeService = leetCodeService ?? new LeetCodeService();
         _selectedYear = DateTime.Now.Year;
         _currentActivity = YearlyActivity.Create(_selectedYear);
+        _currentYearStats = YearlyStatistics.Empty(_selectedYear);
 
         PopulateDefaultYears();
 
@@ -203,6 +222,11 @@ public class MainViewModel : INotifyPropertyChanged
                 }
             }
 
+            // Calculate overall streaks from daily submission calendar
+            _streaks = StreakCalculationService.CalculateStreaks(
+                result.Data.SubmissionCounts,
+                ReferenceDate);
+
             UpdateActivityForSelectedYear();
             NotifyStatsChanged();
         }
@@ -216,10 +240,23 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void UpdateActivityForSelectedYear()
+    public void UpdateActivityForSelectedYear()
     {
         var submissionMap = _lastSuccessfulStats?.SubmissionCounts;
         CurrentActivity = YearlyActivity.Create(SelectedYear, submissionMap);
+
+        // Recalculate selected-year specific telemetry
+        _currentYearStats = StreakCalculationService.CalculateYearlyStatistics(
+            SelectedYear,
+            submissionMap,
+            ReferenceDate);
+
+        OnPropertyChanged(nameof(CurrentYearStats));
+        OnPropertyChanged(nameof(YearSubmissions));
+        OnPropertyChanged(nameof(YearActiveDays));
+        OnPropertyChanged(nameof(YearAverageText));
+        OnPropertyChanged(nameof(MostActiveDayText));
+        OnPropertyChanged(nameof(YearLongestStreak));
     }
 
     private void NotifyStatsChanged()
@@ -228,7 +265,9 @@ public class MainViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(EasySolved));
         OnPropertyChanged(nameof(MediumSolved));
         OnPropertyChanged(nameof(HardSolved));
+        OnPropertyChanged(nameof(HasSolvedStats));
         OnPropertyChanged(nameof(CurrentStreak));
+        OnPropertyChanged(nameof(LongestStreak));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

@@ -209,13 +209,14 @@ public class LeetCodeServiceTests
         var service = new LeetCodeService(client);
         var vm = new MainViewModel(service)
         {
-            Username = "test_coder"
+            Username = "test_coder",
+            ReferenceDate = new DateOnly(2026, 3, 11)
         };
 
         // 1. Initial Successful Sync
         await vm.RefreshAsync();
         Assert.Equal(350, vm.TotalSolved);
-        Assert.Equal(5, vm.CurrentStreak);
+        Assert.Equal(3, vm.CurrentStreak);
         Assert.Contains("Synced", vm.SyncStatusText);
         Assert.True(vm.TotalSubmissions > 0);
 
@@ -225,7 +226,7 @@ public class LeetCodeServiceTests
 
         // Cached stats and submissions MUST be preserved
         Assert.Equal(350, vm.TotalSolved);
-        Assert.Equal(5, vm.CurrentStreak);
+        Assert.Equal(3, vm.CurrentStreak);
         Assert.True(vm.TotalSubmissions > 0);
         Assert.Contains("showing cached", vm.SyncStatusText, StringComparison.OrdinalIgnoreCase);
     }
