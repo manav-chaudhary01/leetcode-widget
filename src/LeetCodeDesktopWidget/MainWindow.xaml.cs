@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using LeetCodeDesktopWidget.Desktop;
+using LeetCodeDesktopWidget.ViewModels;
 
 namespace LeetCodeDesktopWidget;
 
@@ -19,7 +20,7 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    protected override void OnSourceInitialized(EventArgs e)
+    protected override async void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
 
@@ -29,6 +30,11 @@ public partial class MainWindow : Window
         _desktopManager.AttachToDesktop();
 
         UpdateHostStatusBadge();
+
+        if (DataContext is MainViewModel vm)
+        {
+            await vm.InitializeAsync();
+        }
     }
 
     private void UpdateHostStatusBadge()
@@ -66,6 +72,7 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _desktopManager?.Dispose();
+        (DataContext as IDisposable)?.Dispose();
         base.OnClosed(e);
     }
 }

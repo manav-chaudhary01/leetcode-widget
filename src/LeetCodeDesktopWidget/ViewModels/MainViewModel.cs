@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using LeetCodeDesktopWidget.Helpers;
@@ -12,11 +13,16 @@ using LeetCodeDesktopWidget.Services;
 namespace LeetCodeDesktopWidget.ViewModels;
 
 /// <summary>
-/// Presentation logic and state manager connecting real LeetCode data to the desktop widget UI.
+/// Presentation logic and state manager connecting real LeetCode data, persistent caching,
+/// configuration, and automatic background refresh to the desktop widget UI.
 /// </summary>
-public class MainViewModel : INotifyPropertyChanged
+public class MainViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly ILeetCodeService _leetCodeService;
+    private readonly IConfigurationService _configService;
+    private readonly ICacheService _cacheService;
+    private readonly IRefreshCoordinator _refreshCoordinator;
+
     private string _username = "";
     private bool _isEditingUsername;
     private int _selectedYear;
@@ -28,8 +34,16 @@ public class MainViewModel : INotifyPropertyChanged
     private LeetCodeUserStats? _lastSuccessfulStats;
     private StreakInfo _streaks = StreakInfo.Empty;
     private YearlyStatistics _currentYearStats;
+    private bool _isDisposed;
+    private DateOnly? _customReferenceDate;
 
-    public DateOnly? ReferenceDate { get; set; }
+    public DateTime? ReferenceDateTime { get; set; }
+
+    public DateOnly? ReferenceDate
+    {
+        get => ReferenceDateTime.HasValue ? DateOnly.FromDateTime(ReferenceDateTime.Value) : _customReferenceDate;
+        set => _customReferenceDate = value;
+    }
 
     public ObservableCollection<int> AvailableYears { get; } = new();
 
@@ -69,6 +83,7 @@ public class MainViewModel : INotifyPropertyChanged
                 _selectedYear = value;
                 OnPropertyChanged();
                 UpdateActivityForSelectedYear();
+                _ = SaveConfigAsync();
             }
         }
     }
@@ -159,9 +174,17 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand ToggleEditUsernameCommand { get; }
     public ICommand SaveUsernameCommand { get; }
 
-    public MainViewModel(ILeetCodeService? leetCodeService = null)
+    public MainViewModel(
+        ILeetCodeService? leetCodeService = null,
+        IConfigurationService? configService = null,
+        ICacheService? cacheService = null,
+        IRefreshCoordinator? refreshCoordinator = null)
     {
         _leetCodeService = leetCodeService ?? new LeetCodeService();
+        _configService = configService ?? new ConfigurationService();
+        _cacheService = cacheService ?? new CacheService();
+        _refreshCoordinator = refreshCoordinator ?? new RefreshCoordinator();
+
         _selectedYear = DateTime.Now.Year;
         _currentActivity = YearlyActivity.Create(_selectedYear);
         _currentYearStats = YearlyStatistics.Empty(_selectedYear);
@@ -170,11 +193,69 @@ public class MainViewModel : INotifyPropertyChanged
 
         RefreshCommand = new RelayCommand(async _ => await RefreshAsync());
         ToggleEditUsernameCommand = new RelayCommand(_ => IsEditingUsername = !IsEditingUsername);
-        SaveUsernameCommand = new RelayCommand(async _ =>
+        SaveUsernameCommand = new RelayCommand(async _ => await SaveUsernameAndRefreshAsync());
+
+        // Connect refresh coordinator to sync callback
+        _refreshCoordinator.Start(PerformSyncAsync);
+    }
+
+    public async Task InitializeAsync()
+    {
+        // 1. Load persisted configuration
+        var config = await _configService.LoadConfigurationAsync().ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(_username) && !string.IsNullOrWhiteSpace(config.Username))
         {
-            IsEditingUsername = false;
-            await RefreshAsync();
-        });
+            _username = config.Username;
+            OnPropertyChanged(nameof(Username));
+        }
+
+        if (config.SelectedYear > 2000)
+        {
+            _selectedYear = config.SelectedYear;
+            OnPropertyChanged(nameof(SelectedYear));
+        }
+
+        _refreshCoordinator.Interval = TimeSpan.FromMinutes(config.RefreshIntervalMinutes);
+
+        // 2. Load cached activity immediately
+        if (!string.IsNullOrWhiteSpace(_username))
+        {
+            var cached = await _cacheService.LoadCacheAsync(_username).ConfigureAwait(false);
+            if (cached != null)
+            {
+                _lastSuccessfulStats = cached.ToUserStats();
+                PopulateActiveYears(_lastSuccessfulStats.ActiveYears);
+                _streaks = StreakCalculationService.CalculateStreaks(
+                    _lastSuccessfulStats.SubmissionCounts,
+                    ReferenceDate);
+
+                UpdateActivityForSelectedYear();
+                NotifyStatsChanged();
+
+                SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                    _lastSuccessfulStats.LastSyncedAt,
+                    isOffline: false,
+                    referenceTime: ReferenceDateTime);
+            }
+            else
+            {
+                SyncStatusText = "Configured · syncing...";
+            }
+        }
+        else
+        {
+            SyncStatusText = "Configure username to start";
+        }
+
+        if (!_refreshCoordinator.IsRunning)
+        {
+            _refreshCoordinator.Start(PerformSyncAsync);
+        }
+
+        if (!string.IsNullOrWhiteSpace(_username))
+        {
+            _ = _refreshCoordinator.TriggerRefreshAsync(isManual: false);
+        }
     }
 
     private void PopulateDefaultYears()
@@ -187,8 +268,37 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private void PopulateActiveYears(IReadOnlyList<int>? years)
+    {
+        if (years == null || years.Count == 0) return;
+
+        int curYear = SelectedYear;
+        AvailableYears.Clear();
+        foreach (var y in years.OrderByDescending(x => x))
+        {
+            AvailableYears.Add(y);
+        }
+        if (!AvailableYears.Contains(curYear))
+        {
+            AvailableYears.Insert(0, curYear);
+        }
+    }
+
+    public async Task<bool> RequestManualRefreshAsync()
+    {
+        if (_isDisposed) return false;
+        return await _refreshCoordinator.TriggerRefreshAsync(isManual: true).ConfigureAwait(false);
+    }
+
     public async Task RefreshAsync()
     {
+        await RequestManualRefreshAsync().ConfigureAwait(false);
+    }
+
+    public async Task PerformSyncAsync(CancellationToken cancellationToken)
+    {
+        if (_isDisposed) return;
+
         if (string.IsNullOrWhiteSpace(Username))
         {
             SyncStatusText = "Configure a username to fetch data";
@@ -198,45 +308,104 @@ public class MainViewModel : INotifyPropertyChanged
         IsSyncing = true;
         SyncStatusText = "Syncing with LeetCode...";
 
-        var result = await _leetCodeService.GetUserActivityAsync(Username, SelectedYear);
+        var result = await _leetCodeService.GetUserActivityAsync(Username, SelectedYear, cancellationToken).ConfigureAwait(false);
 
+        if (_isDisposed) return;
         IsSyncing = false;
 
         if (result.IsSuccess && result.Data != null)
         {
             _lastSuccessfulStats = result.Data;
-            SyncStatusText = $"Synced {result.Data.LastSyncedAt:h:mm tt}";
 
-            // Update years if available
-            if (result.Data.ActiveYears != null && result.Data.ActiveYears.Count > 0)
-            {
-                int curYear = SelectedYear;
-                AvailableYears.Clear();
-                foreach (var y in result.Data.ActiveYears.OrderByDescending(x => x))
-                {
-                    AvailableYears.Add(y);
-                }
-                if (!AvailableYears.Contains(curYear))
-                {
-                    AvailableYears.Insert(0, curYear);
-                }
-            }
+            // Persist to local cache atomically
+            await _cacheService.SaveCacheAsync(result.Data).ConfigureAwait(false);
 
-            // Calculate overall streaks from daily submission calendar
+            PopulateActiveYears(result.Data.ActiveYears);
+
             _streaks = StreakCalculationService.CalculateStreaks(
                 result.Data.SubmissionCounts,
                 ReferenceDate);
 
             UpdateActivityForSelectedYear();
             NotifyStatsChanged();
+
+            SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                result.Data.LastSyncedAt,
+                isOffline: false,
+                referenceTime: ReferenceDateTime);
         }
         else
         {
-            // Preserve previously cached activity; update status message
+            // Failed sync: preserve previously cached data and indicate offline/stale status
             string err = result.ErrorMessage ?? "Synchronization failed.";
-            SyncStatusText = _lastSuccessfulStats != null
-                ? $"Sync failed ({err}) - showing cached"
-                : $"Error: {err}";
+            bool hasCache = _lastSuccessfulStats != null;
+
+            SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                _lastSuccessfulStats?.LastSyncedAt,
+                isOffline: true,
+                failureReason: err,
+                referenceTime: ReferenceDateTime);
+
+            if (!hasCache)
+            {
+                // Clear to empty calendar if no cache exists
+                CurrentActivity = YearlyActivity.Create(SelectedYear, null);
+                _currentYearStats = YearlyStatistics.Empty(SelectedYear);
+                _streaks = StreakInfo.Empty;
+                NotifyStatsChanged();
+            }
+        }
+    }
+
+    private async Task SaveUsernameAndRefreshAsync()
+    {
+        IsEditingUsername = false;
+        var sanitized = WidgetConfig.SanitizeUsername(Username);
+        Username = sanitized;
+
+        await SaveConfigAsync().ConfigureAwait(false);
+
+        // Check if there is cache for this new username
+        var cached = await _cacheService.LoadCacheAsync(sanitized).ConfigureAwait(false);
+        if (cached != null)
+        {
+            _lastSuccessfulStats = cached.ToUserStats();
+            PopulateActiveYears(_lastSuccessfulStats.ActiveYears);
+            _streaks = StreakCalculationService.CalculateStreaks(_lastSuccessfulStats.SubmissionCounts, ReferenceDate);
+            UpdateActivityForSelectedYear();
+            NotifyStatsChanged();
+            SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                _lastSuccessfulStats.LastSyncedAt,
+                isOffline: false,
+                referenceTime: ReferenceDateTime);
+        }
+        else
+        {
+            _lastSuccessfulStats = null;
+            CurrentActivity = YearlyActivity.Create(SelectedYear, null);
+            _currentYearStats = YearlyStatistics.Empty(SelectedYear);
+            _streaks = StreakInfo.Empty;
+            NotifyStatsChanged();
+            SyncStatusText = "Username updated · syncing...";
+        }
+
+        await RequestManualRefreshAsync().ConfigureAwait(false);
+    }
+
+    private async Task SaveConfigAsync()
+    {
+        try
+        {
+            await _configService.SaveConfigurationAsync(new WidgetConfig
+            {
+                Username = Username,
+                SelectedYear = SelectedYear,
+                RefreshIntervalMinutes = (int)_refreshCoordinator.Interval.TotalMinutes
+            }).ConfigureAwait(false);
+        }
+        catch
+        {
+            // Fail safely
         }
     }
 
@@ -275,5 +444,15 @@ public class MainViewModel : INotifyPropertyChanged
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public void Dispose()
+    {
+        if (!_isDisposed)
+        {
+            _isDisposed = true;
+            _refreshCoordinator.Dispose();
+        }
+        GC.SuppressFinalize(this);
     }
 }

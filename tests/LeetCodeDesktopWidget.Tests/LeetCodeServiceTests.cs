@@ -228,6 +228,6 @@ public class LeetCodeServiceTests
         Assert.Equal(350, vm.TotalSolved);
         Assert.Equal(3, vm.CurrentStreak);
         Assert.True(vm.TotalSubmissions > 0);
-        Assert.Contains("showing cached", vm.SyncStatusText, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("cached", vm.SyncStatusText, StringComparison.OrdinalIgnoreCase);
     }
 }
