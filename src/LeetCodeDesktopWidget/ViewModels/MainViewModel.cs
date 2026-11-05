@@ -24,6 +24,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private readonly IRefreshCoordinator _refreshCoordinator;
 
     private string _username = "";
+    private string _usernameBeforeEdit = "";
     private bool _isEditingUsername;
     private int _selectedYear;
     private YearlyActivity _currentActivity;
@@ -173,6 +174,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public ICommand RefreshCommand { get; }
     public ICommand ToggleEditUsernameCommand { get; }
     public ICommand SaveUsernameCommand { get; }
+    public ICommand CancelEditUsernameCommand { get; }
 
     public MainViewModel(
         ILeetCodeService? leetCodeService = null,
@@ -192,11 +194,29 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         PopulateDefaultYears();
 
         RefreshCommand = new RelayCommand(async _ => await RefreshAsync());
-        ToggleEditUsernameCommand = new RelayCommand(_ => IsEditingUsername = !IsEditingUsername);
+        ToggleEditUsernameCommand = new RelayCommand(_ =>
+        {
+            if (!IsEditingUsername)
+            {
+                _usernameBeforeEdit = Username;
+                IsEditingUsername = true;
+            }
+            else
+            {
+                CancelEditUsername();
+            }
+        });
         SaveUsernameCommand = new RelayCommand(async _ => await SaveUsernameAndRefreshAsync());
+        CancelEditUsernameCommand = new RelayCommand(_ => CancelEditUsername());
 
         // Connect refresh coordinator to sync callback
         _refreshCoordinator.Start(PerformSyncAsync);
+    }
+
+    public void CancelEditUsername()
+    {
+        Username = _usernameBeforeEdit;
+        IsEditingUsername = false;
     }
 
     public async Task InitializeAsync()
@@ -362,6 +382,12 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         IsEditingUsername = false;
         var sanitized = WidgetConfig.SanitizeUsername(Username);
         Username = sanitized;
+
+        if (string.IsNullOrWhiteSpace(sanitized))
+        {
+            SyncStatusText = "Please enter a valid username";
+            return;
+        }
 
         await SaveConfigAsync().ConfigureAwait(false);
 

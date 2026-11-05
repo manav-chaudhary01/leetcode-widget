@@ -41,7 +41,10 @@ query getUserProfile($username: String!, $year: Int) {
 
     public LeetCodeService(HttpClient? httpClient = null)
     {
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(20)
+        };
         ConfigureDefaultHeaders(_httpClient);
     }
 

@@ -24,6 +24,8 @@ public partial class MainWindow : Window
     {
         base.OnSourceInitialized(e);
 
+        EnsureVisibleOnScreen();
+
         _desktopManager = new DesktopWindowManager(this);
         _desktopManager.ExplorerRestarted += OnExplorerRestarted;
         _desktopManager.DisplayChanged += OnDisplayChanged;
@@ -35,6 +37,27 @@ public partial class MainWindow : Window
         {
             await vm.InitializeAsync();
         }
+    }
+
+    public void EnsureVisibleOnScreen()
+    {
+        double screenWidth = SystemParameters.WorkArea.Width;
+        double screenHeight = SystemParameters.WorkArea.Height;
+        if (screenWidth <= 0 || screenHeight <= 0) return;
+
+        double maxLeft = Math.Max(0, screenWidth - Width - 20);
+        double maxTop = Math.Max(0, screenHeight - Height - 20);
+
+        if (Left > maxLeft)
+        {
+            Left = Math.Max(20, maxLeft);
+        }
+        if (Top > maxTop)
+        {
+            Top = Math.Max(20, maxTop);
+        }
+        if (Left < 0) Left = 20;
+        if (Top < 0) Top = 20;
     }
 
     private void UpdateHostStatusBadge()
@@ -58,13 +81,18 @@ public partial class MainWindow : Window
 
     private void OnExplorerRestarted()
     {
-        Dispatcher.Invoke(UpdateHostStatusBadge);
+        Dispatcher.Invoke(() =>
+        {
+            EnsureVisibleOnScreen();
+            UpdateHostStatusBadge();
+        });
     }
 
     private void OnDisplayChanged()
     {
         Dispatcher.Invoke(() =>
         {
+            EnsureVisibleOnScreen();
             _desktopManager?.SendToBottom();
         });
     }

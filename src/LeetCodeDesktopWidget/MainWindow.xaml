@@ -16,7 +16,13 @@
         ResizeMode="NoResize"
         Topmost="False"
         WindowStartupLocation="Manual"
-        Left="60" Top="60">
+        Left="60" Top="60"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.BitmapScalingMode="HighQuality"
+        RenderOptions.ClearTypeHint="Enabled">
 
     <Window.DataContext>
         <vm:MainViewModel/>
@@ -25,6 +31,17 @@
     <Window.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <helpers:BooleanToVisibilityConverter x:Key="InverseBoolToVis" Invert="True"/>
+
+        <!-- Dark minimal ToolTip -->
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="#161B22"/>
+            <Setter Property="Foreground" Value="#C9D1D9"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI, sans-serif"/>
+        </Style>
 
         <!-- Dark minimal ComboBox -->
         <Style x:Key="DarkYearComboBox" TargetType="ComboBox">
@@ -86,7 +103,10 @@
                                    FontSize="11" 
                                    Foreground="#58A6FF" 
                                    VerticalAlignment="Center"
-                                   Cursor="Hand">
+                                   Cursor="Hand"
+                                   MaxWidth="130"
+                                   TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding Username}">
                             <TextBlock.InputBindings>
                                 <MouseBinding Gesture="LeftClick" Command="{Binding ToggleEditUsernameCommand}"/>
                             </TextBlock.InputBindings>
@@ -105,16 +125,30 @@
                                 Visibility="{Binding IsEditingUsername, Converter={StaticResource BoolToVis}}"
                                 Margin="10,0,0,0" VerticalAlignment="Center">
                         <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
-                                 Width="110" 
+                                 Width="120" 
                                  FontSize="11" 
                                  Background="#161B22" 
                                  Foreground="#C9D1D9" 
                                  BorderBrush="#30363D" 
-                                 Padding="4,2"/>
+                                 Padding="4,2">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Return" Command="{Binding SaveUsernameCommand}"/>
+                                <KeyBinding Key="Enter" Command="{Binding SaveUsernameCommand}"/>
+                                <KeyBinding Key="Esc" Command="{Binding CancelEditUsernameCommand}"/>
+                                <KeyBinding Key="Escape" Command="{Binding CancelEditUsernameCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
                         <Button Content="✓" 
                                 Command="{Binding SaveUsernameCommand}" 
+                                ToolTip="Save (Enter)"
                                 Style="{StaticResource DarkIconButton}" 
                                 Margin="4,0,0,0" 
+                                Padding="6,1"/>
+                        <Button Content="✕" 
+                                Command="{Binding CancelEditUsernameCommand}" 
+                                ToolTip="Cancel (Esc)"
+                                Style="{StaticResource DarkIconButton}" 
+                                Margin="3,0,0,0" 
                                 Padding="6,1"/>
                     </StackPanel>
                 </StackPanel>
@@ -206,6 +240,9 @@
                                DockPanel.Dock="Right"
                                HorizontalAlignment="Right"
                                VerticalAlignment="Center"
+                               MaxWidth="260"
+                               TextTrimming="CharacterEllipsis"
+                               ToolTip="{Binding SyncStatusText}"
                                FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
                 </DockPanel>
             </Border>
@@ -218,6 +255,8 @@
                            Foreground="#8B949E" 
                            DockPanel.Dock="Left"
                            VerticalAlignment="Center"
+                           MaxWidth="450"
+                           TextTrimming="CharacterEllipsis"
                            FontFamily="Segoe UI Variable, Segoe UI, sans-serif"/>
 
                 <!-- 5-Level Contribution Legend -->
