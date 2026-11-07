@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using LeetCodeDesktopWidget.Desktop;
+using LeetCodeDesktopWidget.Services;
 using LeetCodeDesktopWidget.ViewModels;
 
 namespace LeetCodeDesktopWidget;
@@ -15,9 +16,23 @@ public partial class MainWindow : Window
 
     public DesktopWindowManager? DesktopManager => _desktopManager;
 
-    public MainWindow()
+    public MainWindow() : this(CreateDefaultViewModel())
+    {
+    }
+
+    public MainWindow(MainViewModel viewModel)
     {
         InitializeComponent();
+        DataContext = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+    }
+
+    private static MainViewModel CreateDefaultViewModel()
+    {
+        return new MainViewModel(
+            new LeetCodeService(),
+            new ConfigurationService(),
+            new CacheService(),
+            new RefreshCoordinator());
     }
 
     protected override async void OnSourceInitialized(EventArgs e)

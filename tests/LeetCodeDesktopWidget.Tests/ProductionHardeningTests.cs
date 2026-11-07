@@ -355,5 +355,63 @@ public class ProductionHardeningTests
         Assert.Equal(300, clampedT3);
     }
 
+    [Fact]
+    public void MainWindow_ConstructorWithViewModel_SetsDataContextProperly()
+    {
+        Exception? threadEx = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                var vm = new MainViewModel(
+                    new LeetCodeService(),
+                    new ConfigurationService(),
+                    new CacheService(),
+                    new RefreshCoordinator());
+
+                var window = new MainWindow(vm);
+                Assert.Same(vm, window.DataContext);
+                window.Close();
+            }
+            catch (Exception ex)
+            {
+                threadEx = ex;
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join(5000);
+
+        if (threadEx != null) throw threadEx;
+    }
+
+    [Fact]
+    public void MainWindow_DefaultConstructor_InstantiatesWithValidMainViewModelAndDependenciesWithoutThrowing()
+    {
+        Exception? threadEx = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                var window = new MainWindow();
+                Assert.NotNull(window.DataContext);
+                var vm = Assert.IsType<MainViewModel>(window.DataContext);
+                Assert.NotNull(vm.RefreshCommand);
+                window.Close();
+            }
+            catch (Exception ex)
+            {
+                threadEx = ex;
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join(5000);
+
+        if (threadEx != null) throw threadEx;
+    }
+
     #endregion
 }

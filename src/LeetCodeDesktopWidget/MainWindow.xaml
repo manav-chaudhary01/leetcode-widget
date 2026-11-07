@@ -22,11 +22,8 @@
         TextOptions.TextFormattingMode="Display"
         TextOptions.TextRenderingMode="ClearType"
         RenderOptions.BitmapScalingMode="HighQuality"
-        RenderOptions.ClearTypeHint="Enabled">
-
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
+        RenderOptions.ClearTypeHint="Enabled"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=False}">
 
     <Window.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BoolToVis"/>

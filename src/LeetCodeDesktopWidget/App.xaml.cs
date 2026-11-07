@@ -1,6 +1,8 @@
 using System;
 using System.Windows;
 using LeetCodeDesktopWidget.Desktop;
+using LeetCodeDesktopWidget.Services;
+using LeetCodeDesktopWidget.ViewModels;
 
 namespace LeetCodeDesktopWidget;
 
@@ -11,7 +13,7 @@ public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)
     {
-        // If launched in a secondary or test runner desktop, attach thread
+        // 1. If launched in a secondary or test runner desktop, attach thread
         // to the interactive "Default" desktop where Windows Explorer and Progman reside.
         try
         {
@@ -27,5 +29,21 @@ public partial class App : Application
         }
 
         base.OnStartup(e);
+
+        // 2. Composition root: construct services and authoritative MainViewModel
+        var leetCodeService = new LeetCodeService();
+        var configService = new ConfigurationService();
+        var cacheService = new CacheService();
+        var refreshCoordinator = new RefreshCoordinator();
+
+        var viewModel = new MainViewModel(
+            leetCodeService,
+            configService,
+            cacheService,
+            refreshCoordinator);
+
+        var mainWindow = new MainWindow(viewModel);
+        MainWindow = mainWindow;
+        mainWindow.Show();
     }
 }
