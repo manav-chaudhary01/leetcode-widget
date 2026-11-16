@@ -22,10 +22,17 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private readonly IConfigurationService _configService;
     private readonly ICacheService _cacheService;
     private readonly IRefreshCoordinator _refreshCoordinator;
+    private readonly IAccountVerificationService _verificationService;
 
     private string _username = "";
     private string _usernameBeforeEdit = "";
     private bool _isEditingUsername;
+    private string _verifiedUsername = "";
+    private DateTime? _verifiedAt;
+    private bool _isVerificationPromptOpen;
+    private bool _isVerifying;
+    private string _verificationToken = "";
+    private string _verificationStatusText = "";
     private int _selectedYear;
     private YearlyActivity _currentActivity;
     private DailySubmission? _hoveredDay;
@@ -58,11 +65,102 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 _username = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayUsername));
+                OnPropertyChanged(nameof(IsAccountVerified));
+                OnPropertyChanged(nameof(VerificationBadgeTooltip));
             }
         }
     }
 
     public string DisplayUsername => string.IsNullOrWhiteSpace(Username) ? "@configure-user" : Username;
+
+    public string VerifiedUsername
+    {
+        get => _verifiedUsername;
+        private set
+        {
+            if (_verifiedUsername != value)
+            {
+                _verifiedUsername = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsAccountVerified));
+                OnPropertyChanged(nameof(VerificationBadgeTooltip));
+            }
+        }
+    }
+
+    public DateTime? VerifiedAt
+    {
+        get => _verifiedAt;
+        private set
+        {
+            if (_verifiedAt != value)
+            {
+                _verifiedAt = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(VerificationBadgeTooltip));
+            }
+        }
+    }
+
+    public bool IsAccountVerified => !string.IsNullOrWhiteSpace(_verifiedUsername) &&
+                                     !string.IsNullOrWhiteSpace(Username) &&
+                                     string.Equals(Username, _verifiedUsername, StringComparison.OrdinalIgnoreCase);
+
+    public string VerificationBadgeTooltip => IsAccountVerified
+        ? $"Verified ownership of @{Username} ({_verifiedAt?.ToLocalTime():yyyy-MM-dd})"
+        : "Account ownership unverified. Click to verify.";
+
+    public bool IsVerificationPromptOpen
+    {
+        get => _isVerificationPromptOpen;
+        set
+        {
+            if (_isVerificationPromptOpen != value)
+            {
+                _isVerificationPromptOpen = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool IsVerifying
+    {
+        get => _isVerifying;
+        private set
+        {
+            if (_isVerifying != value)
+            {
+                _isVerifying = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string VerificationToken
+    {
+        get => _verificationToken;
+        private set
+        {
+            if (_verificationToken != value)
+            {
+                _verificationToken = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string VerificationStatusText
+    {
+        get => _verificationStatusText;
+        private set
+        {
+            if (_verificationStatusText != value)
+            {
+                _verificationStatusText = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     public bool IsEditingUsername
     {
@@ -178,17 +276,23 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public ICommand ToggleEditUsernameCommand { get; }
     public ICommand SaveUsernameCommand { get; }
     public ICommand CancelEditUsernameCommand { get; }
+    public ICommand StartVerificationCommand { get; }
+    public ICommand CheckVerificationCommand { get; }
+    public ICommand CancelVerificationCommand { get; }
+    public ICommand CopyVerificationTokenCommand { get; }
 
     public MainViewModel(
         ILeetCodeService? leetCodeService = null,
         IConfigurationService? configService = null,
         ICacheService? cacheService = null,
-        IRefreshCoordinator? refreshCoordinator = null)
+        IRefreshCoordinator? refreshCoordinator = null,
+        IAccountVerificationService? verificationService = null)
     {
         _leetCodeService = leetCodeService ?? new LeetCodeService();
         _configService = configService ?? new ConfigurationService();
         _cacheService = cacheService ?? new CacheService();
         _refreshCoordinator = refreshCoordinator ?? new RefreshCoordinator();
+        _verificationService = verificationService ?? new AccountVerificationService(_leetCodeService);
 
         _selectedYear = DateTime.Now.Year;
         _currentActivity = YearlyActivity.Create(_selectedYear);
@@ -211,6 +315,76 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         });
         SaveUsernameCommand = new RelayCommand(async _ => await SaveUsernameAndRefreshAsync());
         CancelEditUsernameCommand = new RelayCommand(_ => CancelEditUsername());
+
+        StartVerificationCommand = new RelayCommand(_ =>
+        {
+            if (string.IsNullOrWhiteSpace(Username))
+            {
+                SyncStatusText = "Configure a username before verifying ownership.";
+                return;
+            }
+
+            try
+            {
+                var challenge = _verificationService.GenerateChallenge(Username);
+                VerificationToken = challenge.Token;
+                VerificationStatusText = "Paste the token into your LeetCode About Me bio and click 'Verify Now'.";
+                IsVerificationPromptOpen = true;
+            }
+            catch (Exception ex)
+            {
+                VerificationStatusText = ex.Message;
+            }
+        });
+
+        CheckVerificationCommand = new RelayCommand(async _ =>
+        {
+            if (IsVerifying || string.IsNullOrWhiteSpace(Username)) return;
+
+            IsVerifying = true;
+            VerificationStatusText = "Checking LeetCode profile 'About Me' field...";
+
+            var result = await _verificationService.VerifyOwnershipAsync(Username).ConfigureAwait(false);
+
+            IsVerifying = false;
+
+            if (result.IsSuccess)
+            {
+                VerifiedUsername = result.VerifiedUsername ?? Username;
+                VerifiedAt = result.VerifiedAtUtc ?? DateTime.UtcNow;
+                IsVerificationPromptOpen = false;
+                SyncStatusText = "Account verified! You can now remove the token from your profile.";
+                await SaveConfigAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                VerificationStatusText = result.ErrorMessage ?? "Verification failed.";
+            }
+        });
+
+        CancelVerificationCommand = new RelayCommand(_ =>
+        {
+            _verificationService.CancelChallenge();
+            IsVerificationPromptOpen = false;
+            VerificationToken = "";
+            VerificationStatusText = "";
+        });
+
+        CopyVerificationTokenCommand = new RelayCommand(_ =>
+        {
+            if (!string.IsNullOrEmpty(VerificationToken))
+            {
+                try
+                {
+                    System.Windows.Clipboard.SetText(VerificationToken);
+                    VerificationStatusText = "Token copied to clipboard! Paste it into your LeetCode About Me bio.";
+                }
+                catch
+                {
+                    VerificationStatusText = $"Token: {VerificationToken}";
+                }
+            }
+        });
 
         // Connect refresh coordinator to sync callback
         _refreshCoordinator.Start(PerformSyncAsync);
@@ -235,6 +409,16 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             _username = config.Username;
             OnPropertyChanged(nameof(Username));
             OnPropertyChanged(nameof(DisplayUsername));
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.VerifiedUsername))
+        {
+            _verifiedUsername = config.VerifiedUsername;
+            _verifiedAt = config.VerifiedAt;
+            OnPropertyChanged(nameof(VerifiedUsername));
+            OnPropertyChanged(nameof(VerifiedAt));
+            OnPropertyChanged(nameof(IsAccountVerified));
+            OnPropertyChanged(nameof(VerificationBadgeTooltip));
         }
 
         if (config.SelectedYear > 2000)
@@ -435,7 +619,9 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             {
                 Username = Username,
                 SelectedYear = SelectedYear,
-                RefreshIntervalMinutes = (int)_refreshCoordinator.Interval.TotalMinutes
+                RefreshIntervalMinutes = (int)_refreshCoordinator.Interval.TotalMinutes,
+                VerifiedUsername = _verifiedUsername,
+                VerifiedAt = _verifiedAt
             }).ConfigureAwait(false);
         }
         catch

@@ -11,12 +11,20 @@ public record WidgetConfig
     public string Username { get; init; } = "";
     public int SelectedYear { get; init; } = DateTime.Now.Year;
     public int RefreshIntervalMinutes { get; init; } = 60;
+    public string VerifiedUsername { get; init; } = "";
+    public DateTime? VerifiedAt { get; init; }
+
+    public bool IsAccountVerified => !string.IsNullOrWhiteSpace(VerifiedUsername) &&
+                                     !string.IsNullOrWhiteSpace(Username) &&
+                                     string.Equals(Username, VerifiedUsername, StringComparison.OrdinalIgnoreCase);
 
     public static WidgetConfig Default => new()
     {
         Username = "",
         SelectedYear = DateTime.Now.Year,
-        RefreshIntervalMinutes = 60
+        RefreshIntervalMinutes = 60,
+        VerifiedUsername = "",
+        VerifiedAt = null
     };
 
     /// <summary>

@@ -53,9 +53,11 @@ public class ConfigurationService : IConfigurationService
 
                 // Sanitize username
                 var sanitizedUser = WidgetConfig.SanitizeUsername(config.Username);
+                var sanitizedVerifiedUser = WidgetConfig.SanitizeUsername(config.VerifiedUsername);
                 return Task.FromResult(config with
                 {
                     Username = sanitizedUser,
+                    VerifiedUsername = sanitizedVerifiedUser,
                     RefreshIntervalMinutes = Math.Clamp(config.RefreshIntervalMinutes, 5, 1440)
                 });
             }
@@ -84,6 +86,7 @@ public class ConfigurationService : IConfigurationService
                 var sanitized = config with
                 {
                     Username = WidgetConfig.SanitizeUsername(config.Username),
+                    VerifiedUsername = WidgetConfig.SanitizeUsername(config.VerifiedUsername),
                     RefreshIntervalMinutes = Math.Clamp(config.RefreshIntervalMinutes, 5, 1440)
                 };
 

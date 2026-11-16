@@ -9,5 +9,6 @@ namespace LeetCodeDesktopWidget.Services;
 public interface ILeetCodeService
 {
     Task<LeetCodeResult<LeetCodeUserStats>> GetUserActivityAsync(string username, int? year = null, CancellationToken cancellationToken = default);
+    Task<LeetCodeResult<string>> GetUserProfileAboutMeAsync(string username, CancellationToken cancellationToken = default);
     IReadOnlyDictionary<DateOnly, int> ParseSubmissionCalendar(string? calendarJson);
 }

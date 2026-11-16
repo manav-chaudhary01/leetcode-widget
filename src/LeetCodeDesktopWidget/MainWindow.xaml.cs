@@ -28,11 +28,13 @@ public partial class MainWindow : Window
 
     private static MainViewModel CreateDefaultViewModel()
     {
+        var leetCodeService = new LeetCodeService();
         return new MainViewModel(
-            new LeetCodeService(),
+            leetCodeService,
             new ConfigurationService(),
             new CacheService(),
-            new RefreshCoordinator());
+            new RefreshCoordinator(),
+            new AccountVerificationService(leetCodeService));
     }
 
     protected override async void OnSourceInitialized(EventArgs e)

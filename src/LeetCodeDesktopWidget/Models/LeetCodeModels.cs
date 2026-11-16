@@ -93,11 +93,20 @@ public class MatchedUser
     [JsonPropertyName("username")]
     public string Username { get; set; } = "";
 
+    [JsonPropertyName("profile")]
+    public UserProfile? Profile { get; set; }
+
     [JsonPropertyName("userCalendar")]
     public UserCalendar? UserCalendar { get; set; }
 
     [JsonPropertyName("submitStatsGlobal")]
     public SubmitStatsGlobal? SubmitStatsGlobal { get; set; }
+}
+
+public class UserProfile
+{
+    [JsonPropertyName("aboutMe")]
+    public string? AboutMe { get; set; }
 }
 
 public class UserCalendar

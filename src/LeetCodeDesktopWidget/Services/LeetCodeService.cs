@@ -19,6 +19,16 @@ public class LeetCodeService : ILeetCodeService
     private const string LeetCodeGraphQLEndpoint = "https://leetcode.com/graphql";
     private readonly HttpClient _httpClient;
 
+    private const string UserAboutMeQuery = @"
+query getUserAboutMe($username: String!) {
+  matchedUser(username: $username) {
+    username
+    profile {
+      aboutMe
+    }
+  }
+}";
+
     private const string UserProfileQuery = @"
 query getUserProfile($username: String!, $year: Int) {
   matchedUser(username: $username) {
@@ -197,6 +207,102 @@ query getUserProfile($username: String!, $year: Int) {
         catch (Exception ex)
         {
             return LeetCodeResult<LeetCodeUserStats>.Failure(
+                $"Unexpected error: {ex.Message}",
+                LeetCodeErrorCode.Unknown);
+        }
+    }
+
+    public async Task<LeetCodeResult<string>> GetUserProfileAboutMeAsync(
+        string username,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return LeetCodeResult<string>.Failure(
+                "Please configure a valid LeetCode username.",
+                LeetCodeErrorCode.UserNotFound);
+        }
+
+        username = username.Trim();
+
+        var requestPayload = new GraphQLRequest
+        {
+            Query = UserAboutMeQuery,
+            Variables = new Dictionary<string, object?>
+            {
+                ["username"] = username
+            }
+        };
+
+        string jsonPayload = JsonSerializer.Serialize(requestPayload);
+        using var requestContent = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+        try
+        {
+            using var response = await _httpClient.PostAsync(
+                LeetCodeGraphQLEndpoint,
+                requestContent,
+                cancellationToken).ConfigureAwait(false);
+
+            if ((int)response.StatusCode == 429)
+            {
+                return LeetCodeResult<string>.Failure(
+                    "LeetCode rate limit reached. Please wait a few moments before trying again.",
+                    LeetCodeErrorCode.RateLimited);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return LeetCodeResult<string>.Failure(
+                    $"LeetCode API returned HTTP {(int)response.StatusCode} ({response.ReasonPhrase}).",
+                    LeetCodeErrorCode.NetworkError);
+            }
+
+            var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var result = await JsonSerializer.DeserializeAsync<GraphQLResponse<UserProfileData>>(
+                responseStream,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            if (result == null)
+            {
+                return LeetCodeResult<string>.Failure(
+                    "Received empty or invalid response from LeetCode.",
+                    LeetCodeErrorCode.InvalidResponse);
+            }
+
+            if (result.Data?.MatchedUser == null)
+            {
+                string errMsg = (result.Errors != null && result.Errors.Count > 0)
+                    ? result.Errors[0].Message
+                    : $"LeetCode user '{username}' was not found.";
+
+                return LeetCodeResult<string>.Failure(errMsg, LeetCodeErrorCode.UserNotFound);
+            }
+
+            string aboutMe = result.Data.MatchedUser.Profile?.AboutMe ?? "";
+            return LeetCodeResult<string>.Success(aboutMe);
+        }
+        catch (HttpRequestException ex)
+        {
+            return LeetCodeResult<string>.Failure(
+                $"Network connection error: {ex.Message}",
+                LeetCodeErrorCode.NetworkError);
+        }
+        catch (TaskCanceledException)
+        {
+            return LeetCodeResult<string>.Failure(
+                "Request timed out while connecting to LeetCode.",
+                LeetCodeErrorCode.NetworkError);
+        }
+        catch (JsonException ex)
+        {
+            return LeetCodeResult<string>.Failure(
+                $"Failed to parse LeetCode profile response: {ex.Message}",
+                LeetCodeErrorCode.InvalidResponse);
+        }
+        catch (Exception ex)
+        {
+            return LeetCodeResult<string>.Failure(
                 $"Unexpected error: {ex.Message}",
                 LeetCodeErrorCode.Unknown);
         }

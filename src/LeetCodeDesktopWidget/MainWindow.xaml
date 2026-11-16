@@ -115,6 +115,25 @@
                                 Margin="6,0,0,0" 
                                 Padding="4,1"
                                 FontSize="9"/>
+
+                        <!-- Verified Badge -->
+                        <Border Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}"
+                                Background="#0E4429" BorderBrush="#238636" BorderThickness="1" CornerRadius="3"
+                                Padding="4,1" Margin="6,0,0,0" VerticalAlignment="Center"
+                                ToolTip="{Binding VerificationBadgeTooltip}">
+                            <TextBlock Text="✓ Verified" FontSize="9.5" FontWeight="SemiBold" Foreground="#3FB950"/>
+                        </Border>
+
+                        <!-- Unverified / Verify Button -->
+                        <Button Visibility="{Binding IsAccountVerified, Converter={StaticResource InverseBoolToVis}}"
+                                Command="{Binding StartVerificationCommand}"
+                                ToolTip="{Binding VerificationBadgeTooltip}"
+                                Style="{StaticResource DarkIconButton}" 
+                                Margin="6,0,0,0" 
+                                Padding="5,1" 
+                                BorderBrush="#D29922">
+                            <TextBlock Text="Verify Ownership" FontSize="9.5" Foreground="#D29922"/>
+                        </Button>
                     </StackPanel>
 
                     <!-- Username Edit Mode -->
@@ -268,6 +287,107 @@
                     <TextBlock Text="More" FontSize="10" Foreground="#6E7681" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </DockPanel>
+
+            <!-- Account Ownership Verification Overlay -->
+            <Border Grid.RowSpan="4" 
+                    Background="#FA0D1117" 
+                    CornerRadius="8" 
+                    Visibility="{Binding IsVerificationPromptOpen, Converter={StaticResource BoolToVis}}"
+                    Padding="20,12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                            <TextBlock Text="ACCOUNT OWNERSHIP VERIFICATION" FontSize="11" FontWeight="Bold" Foreground="#8B949E"/>
+                            <TextBlock Text=" — @" FontSize="11" Foreground="#6E7681"/>
+                            <TextBlock Text="{Binding Username}" FontSize="11" FontWeight="SemiBold" Foreground="#58A6FF"/>
+                        </StackPanel>
+                        <Button Content="✕" 
+                                Command="{Binding CancelVerificationCommand}" 
+                                DockPanel.Dock="Right" 
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource DarkIconButton}" 
+                                Padding="6,1" 
+                                FontSize="10" 
+                                ToolTip="Close"/>
+                    </DockPanel>
+
+                    <!-- Instructions -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,8">
+                        <TextBlock Text="To verify that you own this LeetCode account, follow these 3 steps:" 
+                                   FontSize="11" Foreground="#C9D1D9" Margin="0,0,0,6"/>
+                        
+                        <TextBlock Text="1. Copy your temporary challenge token below (valid for 15 minutes):" 
+                                   FontSize="10.5" Foreground="#8B949E" Margin="0,0,0,4"/>
+                        
+                        <!-- Token Box + Copy Button -->
+                        <Border Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="4" Padding="8,4" Margin="0,0,0,6">
+                            <DockPanel>
+                                <Button Content="📋 Copy" 
+                                        Command="{Binding CopyVerificationTokenCommand}" 
+                                        DockPanel.Dock="Right" 
+                                        Style="{StaticResource DarkIconButton}" 
+                                        Padding="8,2" 
+                                        Margin="8,0,0,0" 
+                                        FontSize="10" 
+                                        FontWeight="SemiBold"/>
+                                <TextBox Text="{Binding VerificationToken, Mode=OneWay}" 
+                                         IsReadOnly="True" 
+                                         Background="Transparent" 
+                                         Foreground="#3FB950" 
+                                         FontFamily="Consolas, monospace" 
+                                         FontSize="11" 
+                                         BorderThickness="0" 
+                                         VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </Border>
+
+                        <TextBlock Text="2. Go to leetcode.com/profile and paste this token into your 'About Me' bio." 
+                                   FontSize="10.5" Foreground="#8B949E" Margin="0,0,0,4"/>
+                        <TextBlock Text="3. Click 'Save' on LeetCode, then click 'Verify Ownership' below." 
+                                   FontSize="10.5" Foreground="#8B949E" Margin="0,0,0,2"/>
+                        <TextBlock Text="(Once verified, you can immediately remove the token from your profile bio.)" 
+                                   FontSize="9.5" FontStyle="Italic" Foreground="#6E7681"/>
+                    </StackPanel>
+
+                    <!-- Status message -->
+                    <TextBlock Grid.Row="2" 
+                               Text="{Binding VerificationStatusText}" 
+                               FontSize="10.5" 
+                               Foreground="#E3B341" 
+                               TextWrapping="Wrap" 
+                               Margin="0,0,0,8"/>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancel" 
+                                Command="{Binding CancelVerificationCommand}" 
+                                Style="{StaticResource DarkIconButton}" 
+                                Margin="0,0,8,0" 
+                                Padding="12,4" 
+                                FontSize="11"/>
+                        <Button Content="Verify Ownership" 
+                                Command="{Binding CheckVerificationCommand}" 
+                                IsEnabled="{Binding IsVerifying, Converter={StaticResource InverseBoolToVis}}"
+                                Background="#238636" 
+                                Foreground="#FFFFFF" 
+                                BorderBrush="#2EA043" 
+                                BorderThickness="1" 
+                                Padding="14,4" 
+                                FontSize="11" 
+                                FontWeight="SemiBold" 
+                                Cursor="Hand"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
         </Grid>
     </Border>
 </Window>

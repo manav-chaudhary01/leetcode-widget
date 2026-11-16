@@ -35,12 +35,14 @@ public partial class App : Application
         var configService = new ConfigurationService();
         var cacheService = new CacheService();
         var refreshCoordinator = new RefreshCoordinator();
+        var verificationService = new AccountVerificationService(leetCodeService);
 
         var viewModel = new MainViewModel(
             leetCodeService,
             configService,
             cacheService,
-            refreshCoordinator);
+            refreshCoordinator,
+            verificationService);
 
         var mainWindow = new MainWindow(viewModel);
         MainWindow = mainWindow;
