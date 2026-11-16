@@ -23,6 +23,9 @@
         TextOptions.TextRenderingMode="ClearType"
         RenderOptions.BitmapScalingMode="HighQuality"
         RenderOptions.ClearTypeHint="Enabled"
+        MouseMove="OnWindowMouseMove"
+        MouseLeftButtonUp="OnWindowMouseLeftButtonUp"
+        LostMouseCapture="OnWindowLostMouseCapture"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=False}">
 
     <Window.Resources>
@@ -84,16 +87,32 @@
                 </Grid.RowDefinitions>
 
                 <!-- Row 0: Header with Username, All-Time Solved Breakdown, and Streaks -->
-                <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                <DockPanel Grid.Row="0" Margin="0,0,0,8" LastChildFill="True">
                 <!-- Left: Branding & Username -->
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <Ellipse x:Name="DesktopStatusDot" Width="9" Height="9" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
-                    <TextBlock Text="LEETCODE" 
-                               FontSize="11.5" 
-                               FontWeight="Bold" 
-                               Foreground="#8B949E" 
-                               FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
-                               VerticalAlignment="Center"/>
+                    <!-- Brand Drag Handle -->
+                    <StackPanel x:Name="HeaderBrandDragArea"
+                                Orientation="Horizontal"
+                                Background="Transparent"
+                                Cursor="SizeAll"
+                                ToolTip="Click and drag to move widget"
+                                MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"
+                                VerticalAlignment="Center">
+                        <Ellipse x:Name="DesktopStatusDot" Width="9" Height="9" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
+                        <TextBlock Text="LEETCODE" 
+                                   FontSize="11.5" 
+                                   FontWeight="Bold" 
+                                   Foreground="#8B949E" 
+                                   FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text=" ⋮⋮" 
+                                   FontSize="11.5" 
+                                   FontWeight="Bold" 
+                                   Foreground="#484F58" 
+                                   FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
+                                   VerticalAlignment="Center"
+                                   Margin="3,0,0,0"/>
+                    </StackPanel>
 
                     <!-- Username Display Mode -->
                     <StackPanel Orientation="Horizontal" 
@@ -219,6 +238,14 @@
                             Padding="7,2" 
                             FontWeight="Bold"/>
                 </StackPanel>
+
+                <!-- Center: Drag Fill Area -->
+                <Border x:Name="HeaderCenterDragArea" 
+                        Background="Transparent" 
+                        Cursor="SizeAll" 
+                        ToolTip="Click and drag to move widget"
+                        MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"
+                        Margin="8,0"/>
             </DockPanel>
 
             <!-- Row 1: Heatmap Grid Canvas -->
@@ -298,7 +325,14 @@
               VerticalAlignment="Center" HorizontalAlignment="Center">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                 <!-- Brand -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                <StackPanel x:Name="OnboardingBrandDragArea" 
+                            Orientation="Horizontal" 
+                            HorizontalAlignment="Center" 
+                            Background="Transparent"
+                            Cursor="SizeAll"
+                            ToolTip="Click and drag to move widget"
+                            MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"
+                            Margin="0,0,0,8">
                     <Ellipse x:Name="OnboardingStatusDot" Width="9" Height="9" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
                     <TextBlock Text="LEETCODE" 
                                FontSize="11.5" 
@@ -306,6 +340,13 @@
                                Foreground="#8B949E" 
                                FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
                                VerticalAlignment="Center"/>
+                    <TextBlock Text=" ⋮⋮" 
+                               FontSize="11.5" 
+                               FontWeight="Bold" 
+                               Foreground="#484F58" 
+                               FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
+                               VerticalAlignment="Center"
+                               Margin="3,0,0,0"/>
                 </StackPanel>
 
                 <!-- Title -->
@@ -383,10 +424,18 @@
 
                     <!-- Header -->
                     <DockPanel Grid.Row="0" Margin="0,0,0,10">
-                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                        <StackPanel x:Name="OverlayDragArea"
+                                    Orientation="Horizontal" 
+                                    DockPanel.Dock="Left" 
+                                    VerticalAlignment="Center"
+                                    Background="Transparent"
+                                    Cursor="SizeAll"
+                                    ToolTip="Click and drag to move widget"
+                                    MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown">
                             <TextBlock Text="ACCOUNT OWNERSHIP VERIFICATION" FontSize="11" FontWeight="Bold" Foreground="#8B949E"/>
                             <TextBlock Text=" — @" FontSize="11" Foreground="#6E7681"/>
                             <TextBlock Text="{Binding Username}" FontSize="11" FontWeight="SemiBold" Foreground="#58A6FF"/>
+                            <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#484F58" Margin="4,0,0,0"/>
                         </StackPanel>
                         <Button Content="✕" 
                                 Command="{Binding CancelVerificationCommand}" 

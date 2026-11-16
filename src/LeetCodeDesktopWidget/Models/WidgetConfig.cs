@@ -13,6 +13,8 @@ public record WidgetConfig
     public int RefreshIntervalMinutes { get; init; } = 60;
     public string VerifiedUsername { get; init; } = "";
     public DateTime? VerifiedAt { get; init; }
+    public double? WindowX { get; init; }
+    public double? WindowY { get; init; }
 
     public bool IsAccountVerified => !string.IsNullOrWhiteSpace(VerifiedUsername) &&
                                      !string.IsNullOrWhiteSpace(Username) &&
@@ -24,7 +26,9 @@ public record WidgetConfig
         SelectedYear = DateTime.Now.Year,
         RefreshIntervalMinutes = 60,
         VerifiedUsername = "",
-        VerifiedAt = null
+        VerifiedAt = null,
+        WindowX = null,
+        WindowY = null
     };
 
     /// <summary>

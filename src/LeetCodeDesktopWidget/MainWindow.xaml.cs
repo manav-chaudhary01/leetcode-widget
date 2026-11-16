@@ -1,7 +1,10 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using LeetCodeDesktopWidget.Desktop;
+using LeetCodeDesktopWidget.Helpers;
 using LeetCodeDesktopWidget.Services;
 using LeetCodeDesktopWidget.ViewModels;
 
@@ -9,12 +12,21 @@ namespace LeetCodeDesktopWidget;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml - Desktop Heatmap Widget.
+/// Supports deliberate dragging, virtual multi-monitor clamping, and persistent positioning.
 /// </summary>
 public partial class MainWindow : Window
 {
     private DesktopWindowManager? _desktopManager;
 
+    private bool _isDragCandidate;
+    private bool _isDragging;
+    private Point _dragStartScreenPoint;
+    private double _dragStartWindowLeft;
+    private double _dragStartWindowTop;
+
     public DesktopWindowManager? DesktopManager => _desktopManager;
+    public bool IsDragging => _isDragging;
+    public bool IsDragCandidate => _isDragCandidate;
 
     public MainWindow() : this(CreateDefaultViewModel())
     {
@@ -41,8 +53,6 @@ public partial class MainWindow : Window
     {
         base.OnSourceInitialized(e);
 
-        EnsureVisibleOnScreen();
-
         _desktopManager = new DesktopWindowManager(this);
         _desktopManager.ExplorerRestarted += OnExplorerRestarted;
         _desktopManager.DisplayChanged += OnDisplayChanged;
@@ -66,6 +76,8 @@ public partial class MainWindow : Window
 
             await vm.InitializeAsync();
 
+            RestorePositionFromConfig(vm.WindowX, vm.WindowY);
+
             if (!vm.IsAccountVerified)
             {
                 _ = Dispatcher.InvokeAsync(() =>
@@ -83,27 +95,189 @@ public partial class MainWindow : Window
                 });
             }
         }
+        else
+        {
+            EnsureVisibleOnScreen();
+        }
     }
 
+    /// <summary>
+    /// Restores the window position from saved coordinates or calculates a default position.
+    /// Clamps position to the virtual desktop across all active monitors.
+    /// </summary>
+    public void RestorePositionFromConfig(double? savedX, double? savedY)
+    {
+        double w = ActualWidth > 0 ? ActualWidth : Width;
+        double h = ActualHeight > 0 ? ActualHeight : Height;
+
+        if (savedX.HasValue && savedY.HasValue &&
+            !double.IsNaN(savedX.Value) && !double.IsInfinity(savedX.Value) &&
+            !double.IsNaN(savedY.Value) && !double.IsInfinity(savedY.Value))
+        {
+            var clamped = PositionHelper.ClampWindowPosition(savedX.Value, savedY.Value, w, h);
+            Left = clamped.X;
+            Top = clamped.Y;
+        }
+        else
+        {
+            var defaultPos = PositionHelper.GetDefaultPosition(w, h);
+            Left = defaultPos.X;
+            Top = defaultPos.Y;
+        }
+
+        EnsureVisibleOnScreen();
+    }
+
+    /// <summary>
+    /// Clamps current window coordinates to remain reachable within the virtual screen bounds.
+    /// </summary>
     public void EnsureVisibleOnScreen()
     {
-        double screenWidth = SystemParameters.WorkArea.Width;
-        double screenHeight = SystemParameters.WorkArea.Height;
-        if (screenWidth <= 0 || screenHeight <= 0) return;
+        double w = ActualWidth > 0 ? ActualWidth : Width;
+        double h = ActualHeight > 0 ? ActualHeight : Height;
+        var clamped = PositionHelper.ClampWindowPosition(Left, Top, w, h);
+        Left = clamped.X;
+        Top = clamped.Y;
+    }
 
-        double maxLeft = Math.Max(0, screenWidth - Width - 20);
-        double maxTop = Math.Max(0, screenHeight - Height - 20);
+    public void OnDragHandleMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed) return;
+        if (IsInteractiveControl(e.OriginalSource as DependencyObject)) return;
 
-        if (Left > maxLeft)
+        _isDragCandidate = true;
+        _isDragging = false;
+        _dragStartScreenPoint = PositionHelper.GetCursorPositionDips(this);
+        _dragStartWindowLeft = Left;
+        _dragStartWindowTop = Top;
+
+        CaptureMouse();
+        e.Handled = true;
+    }
+
+    public void OnWindowMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDragCandidate && !_isDragging) return;
+
+        if (e.LeftButton != MouseButtonState.Pressed)
         {
-            Left = Math.Max(20, maxLeft);
+            EndDrag(savePosition: _isDragging);
+            return;
         }
-        if (Top > maxTop)
+
+        var currentScreenPoint = PositionHelper.GetCursorPositionDips(this);
+        double deltaX = currentScreenPoint.X - _dragStartScreenPoint.X;
+        double deltaY = currentScreenPoint.Y - _dragStartScreenPoint.Y;
+
+        if (!_isDragging)
         {
-            Top = Math.Max(20, maxTop);
+            double thresholdX = SystemParameters.MinimumHorizontalDragDistance;
+            double thresholdY = SystemParameters.MinimumVerticalDragDistance;
+
+            if (Math.Abs(deltaX) >= thresholdX || Math.Abs(deltaY) >= thresholdY)
+            {
+                _isDragging = true;
+            }
         }
-        if (Left < 0) Left = 20;
-        if (Top < 0) Top = 20;
+
+        if (_isDragging)
+        {
+            double targetLeft = _dragStartWindowLeft + deltaX;
+            double targetTop = _dragStartWindowTop + deltaY;
+
+            double w = ActualWidth > 0 ? ActualWidth : Width;
+            double h = ActualHeight > 0 ? ActualHeight : Height;
+
+            var clamped = PositionHelper.ClampWindowPosition(targetLeft, targetTop, w, h);
+            Left = clamped.X;
+            Top = clamped.Y;
+            e.Handled = true;
+        }
+    }
+
+    public void OnWindowMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isDragCandidate || _isDragging)
+        {
+            EndDrag(savePosition: _isDragging);
+            e.Handled = true;
+        }
+    }
+
+    public void OnWindowLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (_isDragCandidate || _isDragging)
+        {
+            EndDrag(savePosition: _isDragging);
+        }
+    }
+
+    private void EndDrag(bool savePosition)
+    {
+        bool wasDragging = _isDragging;
+        _isDragCandidate = false;
+        _isDragging = false;
+
+        if (IsMouseCaptured)
+        {
+            ReleaseMouseCapture();
+        }
+
+        if (wasDragging && savePosition)
+        {
+            EnsureVisibleOnScreen();
+            if (DataContext is MainViewModel vm)
+            {
+                _ = vm.SaveWindowPositionAsync(Left, Top);
+            }
+            _desktopManager?.SendToBottom();
+        }
+    }
+
+    /// <summary>
+    /// Traverses the visual tree upwards from source to determine if an interactive control was targeted.
+    /// Prevents dragging when interacting with buttons, textboxes, dropdowns, or heatmap cells.
+    /// </summary>
+    public static bool IsInteractiveControl(DependencyObject? source)
+    {
+        var current = source;
+        while (current != null)
+        {
+            if (current is System.Windows.Controls.Button ||
+                current is System.Windows.Controls.TextBox ||
+                current is System.Windows.Controls.ComboBox ||
+                current is System.Windows.Controls.ComboBoxItem ||
+                current is Views.HeatmapControl)
+            {
+                return true;
+            }
+
+            if (current is System.Windows.Controls.TextBlock tb &&
+                (tb.InputBindings.Count > 0 || tb.Cursor == Cursors.Hand))
+            {
+                return true;
+            }
+
+            DependencyObject? parent = null;
+            if (current is Visual || current is Visual3D)
+            {
+                try
+                {
+                    parent = VisualTreeHelper.GetParent(current);
+                }
+                catch
+                {
+                    // Fallback to logical tree if visual tree is not connected
+                }
+            }
+
+            parent ??= (current as FrameworkElement)?.Parent
+                     ?? (current as FrameworkContentElement)?.Parent
+                     ?? LogicalTreeHelper.GetParent(current);
+
+            current = parent;
+        }
+        return false;
     }
 
     private void UpdateHostStatusBadge()

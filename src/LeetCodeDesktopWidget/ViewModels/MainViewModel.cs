@@ -55,6 +55,34 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private YearlyStatistics _currentYearStats;
     private bool _isDisposed;
     private DateOnly? _customReferenceDate;
+    private double? _windowX;
+    private double? _windowY;
+
+    public double? WindowX
+    {
+        get => _windowX;
+        set
+        {
+            if (_windowX != value)
+            {
+                _windowX = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public double? WindowY
+    {
+        get => _windowY;
+        set
+        {
+            if (_windowY != value)
+            {
+                _windowY = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     public DateTime? ReferenceDateTime { get; set; }
 
@@ -578,6 +606,11 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             OnPropertyChanged(nameof(SelectedYear));
         }
 
+        _windowX = config.WindowX;
+        _windowY = config.WindowY;
+        OnPropertyChanged(nameof(WindowX));
+        OnPropertyChanged(nameof(WindowY));
+
         _refreshCoordinator.Interval = TimeSpan.FromMinutes(config.RefreshIntervalMinutes);
 
         // 2. Load cached activity immediately ONLY IF verified
@@ -933,6 +966,15 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    public async Task SaveWindowPositionAsync(double x, double y)
+    {
+        _windowX = x;
+        _windowY = y;
+        OnPropertyChanged(nameof(WindowX));
+        OnPropertyChanged(nameof(WindowY));
+        await SaveConfigAsync().ConfigureAwait(false);
+    }
+
     private async Task SaveConfigAsync()
     {
         try
@@ -943,7 +985,9 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 SelectedYear = SelectedYear,
                 RefreshIntervalMinutes = (int)_refreshCoordinator.Interval.TotalMinutes,
                 VerifiedUsername = _verifiedUsername,
-                VerifiedAt = _verifiedAt
+                VerifiedAt = _verifiedAt,
+                WindowX = _windowX,
+                WindowY = _windowY
             }).ConfigureAwait(false);
         }
         catch
