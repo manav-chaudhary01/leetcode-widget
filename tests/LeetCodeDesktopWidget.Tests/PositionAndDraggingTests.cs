@@ -530,7 +530,7 @@ public class PositionAndDraggingTests : IDisposable
     }
 
     [Fact]
-    public void MainWindow_RendersVerificationOverlay_Successfully()
+    public void MainWindow_Instantiates_Successfully()
     {
         RunInSta(() =>
         {
@@ -542,22 +542,8 @@ public class PositionAndDraggingTests : IDisposable
                 new RefreshCoordinator(),
                 new AccountVerificationService(leetCode));
 
-            vm.Username = "manav_chaudhary01";
-            vm.StartVerificationCommand.Execute(null);
-
-            var window = new MainWindow(vm) { Width = 845, Height = 285 };
-            window.Show();
-
-            var hwnd = new System.Windows.Interop.WindowInteropHelper(window).EnsureHandle();
-            var bmp = new System.Drawing.Bitmap(845, 285);
-            using (var gfx = System.Drawing.Graphics.FromImage(bmp))
-            {
-                var hdc = gfx.GetHdc();
-                DesktopInterop.PrintWindow(hwnd, hdc, 2);
-                gfx.ReleaseHdc(hdc);
-            }
-            bmp.Save(@"C:\Users\Acer\.gemini\antigravity\brain\d96fd338-1171-4bb6-a590-42cd0836b046\widget_overlay_screenshot.png", System.Drawing.Imaging.ImageFormat.Png);
-            bmp.Dispose();
+            var window = new MainWindow(vm) { Width = 845, Height = 290 };
+            Assert.NotNull(window);
             window.Close();
         });
     }

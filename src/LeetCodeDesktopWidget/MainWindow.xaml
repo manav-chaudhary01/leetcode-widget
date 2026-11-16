@@ -8,7 +8,7 @@
         xmlns:helpers="clr-namespace:LeetCodeDesktopWidget.Helpers"
         mc:Ignorable="d"
         Title="LeetCode Desktop Widget"
-        Height="285" Width="845"
+        Height="290" Width="845"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -399,98 +399,73 @@
                             MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"/>
                 </DockPanel>
 
-                <!-- Row 1: Asymmetric Hero Section (Illustrated Workstation + Identity + Solved + Streak) -->
-                <DockPanel Grid.Row="1" Margin="0,0,0,4" LastChildFill="True">
-                    <!-- Right: Streak Callout & Controls -->
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <!-- Streak Badge: Tactile amber callout container -->
-                        <Border Background="#1C1812" BorderBrush="#3D2E16" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,8,0" VerticalAlignment="Center">
-                            <StackPanel Orientation="Vertical">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <TextBlock Text="🔥" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding CurrentStreak}" FontSize="16" FontWeight="Bold" Foreground="#E3B341" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" DAY STREAK" FontSize="9.5" FontWeight="Bold" Foreground="#D29922" Margin="3,0,0,0" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <TextBlock HorizontalAlignment="Right" Margin="0,1,0,0">
-                                    <Run Text="best " FontSize="9" Foreground="#6E7681"/>
-                                    <Run Text="{Binding LongestStreak, Mode=OneWay}" FontSize="9.5" FontWeight="SemiBold" Foreground="#C9D1D9"/>
-                                    <Run Text="d" FontSize="9" Foreground="#6E7681"/>
-                                </TextBlock>
-                            </StackPanel>
-                        </Border>
+                <!-- Row 1: Handcrafted Illustrated Hero Section (Workstation + Identity/Stats + Streak/Controls) -->
+                <Grid Grid.Row="1" Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/> <!-- Col 0: Framed Workstation Illustration -->
+                        <ColumnDefinition Width="*"/>    <!-- Col 1: Identity, Solved Count, Difficulty Blocks -->
+                        <ColumnDefinition Width="Auto"/> <!-- Col 2: Year/Refresh Controls & Amber Streak Box -->
+                    </Grid.ColumnDefinitions>
 
-                        <!-- Year Selector & Refresh Button Column -->
-                        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                            <ComboBox ItemsSource="{Binding AvailableYears}"
-                                      SelectedItem="{Binding SelectedYear}"
-                                      Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
-                                      Style="{StaticResource DarkYearComboBox}"
-                                      Width="68"
-                                      Margin="0,0,0,4"
-                                      Focusable="False"/>
+                    <!-- Col 0: Contained Illustrated Workstation Vignette -->
+                    <Border Grid.Column="0"
+                            Background="#14181F" 
+                            BorderBrush="#222730" 
+                            BorderThickness="1" 
+                            CornerRadius="6" 
+                            Padding="8,5" 
+                            Margin="0,0,14,0" 
+                            VerticalAlignment="Center">
+                        <Grid Width="92" Height="60" SnapsToDevicePixels="True">
+                            <!-- Desk Surface Base -->
+                            <Rectangle Width="84" Height="4" RadiusX="2" RadiusY="2" Fill="#1A1E26" VerticalAlignment="Bottom" Margin="4,0,4,3"/>
+                            <Rectangle Width="76" Height="1" Fill="#2C323D" VerticalAlignment="Bottom" Margin="8,0,8,7"/>
 
-                            <Button Content="↻" 
-                                    Command="{Binding RefreshCommand}" 
-                                    IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
-                                    ToolTip="Refresh from LeetCode"
-                                    Style="{StaticResource DarkIconButton}" 
-                                    Width="28" Height="22"
-                                    HorizontalAlignment="Right"
-                                    FontSize="11"
-                                    FontWeight="Bold"/>
-                        </StackPanel>
-                    </StackPanel>
+                            <!-- Left: Potted Desk Succulent -->
+                            <Canvas Width="16" Height="24" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="3,0,0,6">
+                                <Path Data="M 8 12 C 5 8, 2 7, 3 3 C 6 4, 8 8, 8 12 Z" Fill="#238C44"/>
+                                <Path Data="M 8 12 C 8 7, 8 3, 10 1 C 12 4, 11 8, 8 12 Z" Fill="#3FB950"/>
+                                <Path Data="M 8 12 C 11 8, 14 7, 13 3 C 10 4, 8 8, 8 12 Z" Fill="#2EB856"/>
+                                <Polygon Points="2,12 14,12 12,21 4,21" Fill="#2A221C"/>
+                                <Rectangle Canvas.Left="1" Canvas.Top="11" Width="14" Height="2" RadiusX="1" RadiusY="1" Fill="#3D2E24"/>
+                            </Canvas>
 
-                    <!-- Left: Illustrated Workstation Hero Vignette -->
-                    <Grid Width="92" Height="64" Margin="0,0,12,0" DockPanel.Dock="Left" SnapsToDevicePixels="True" VerticalAlignment="Center">
-                        <!-- Desk Surface Base -->
-                        <Rectangle Width="84" Height="5" RadiusX="2.5" RadiusY="2.5" Fill="#181B21" VerticalAlignment="Bottom" Margin="4,0,4,3"/>
-                        <Rectangle Width="76" Height="1" Fill="#282E37" VerticalAlignment="Bottom" Margin="8,0,8,8"/>
+                            <!-- Center: Retro-Modern Terminal Monitor with Illuminated Code Glyphs -->
+                            <Canvas Width="48" Height="46" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,2,0,0">
+                                <!-- Stand Base & Neck -->
+                                <Rectangle Canvas.Left="19" Canvas.Top="36" Width="10" Height="8" Fill="#1E222A"/>
+                                <Rectangle Canvas.Left="14" Canvas.Top="43" Width="20" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#262C35"/>
 
-                        <!-- Left: Potted Desk Succulent -->
-                        <Canvas Width="16" Height="24" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="3,0,0,6">
-                            <Path Data="M 8 12 C 5 8, 2 7, 3 3 C 6 4, 8 8, 8 12 Z" Fill="#238C44"/>
-                            <Path Data="M 8 12 C 8 7, 8 3, 10 1 C 12 4, 11 8, 8 12 Z" Fill="#3FB950"/>
-                            <Path Data="M 8 12 C 11 8, 14 7, 13 3 C 10 4, 8 8, 8 12 Z" Fill="#2EB856"/>
-                            <Polygon Points="2,12 14,12 12,21 4,21" Fill="#2A221C"/>
-                            <Rectangle Canvas.Left="1" Canvas.Top="11" Width="14" Height="2" RadiusX="1" RadiusY="1" Fill="#3D2E24"/>
-                        </Canvas>
-
-                        <!-- Center: Retro-Modern Terminal Monitor with Illuminated Code Glyphs -->
-                        <Canvas Width="48" Height="46" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,3,0,0">
-                            <!-- Stand Base & Neck -->
-                            <Rectangle Canvas.Left="19" Canvas.Top="36" Width="10" Height="8" Fill="#1E222A"/>
-                            <Rectangle Canvas.Left="14" Canvas.Top="43" Width="20" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#262C35"/>
-
-                            <!-- Monitor Bezel -->
-                            <Border Canvas.Left="3" Canvas.Top="4" Width="42" Height="33" Background="#21262D" BorderBrush="#2D333E" BorderThickness="1" CornerRadius="4">
-                                <Border Margin="2.5" Background="#0C1A12" BorderBrush="#143A22" BorderThickness="0.8" CornerRadius="2">
-                                    <Grid>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="&lt;" FontSize="11" FontWeight="Bold" Foreground="#2EB856" Margin="0,0,1,0"/>
-                                            <TextBlock Text="/" FontSize="10" FontWeight="Bold" Foreground="#3FB950"/>
-                                            <TextBlock Text="&gt;" FontSize="11" FontWeight="Bold" Foreground="#2EB856" Margin="1,0,0,0"/>
-                                        </StackPanel>
-                                        <Rectangle Height="1" Fill="#104D27" Opacity="0.4" VerticalAlignment="Bottom" Margin="2,0,2,2"/>
-                                    </Grid>
+                                <!-- Monitor Bezel -->
+                                <Border Canvas.Left="3" Canvas.Top="4" Width="42" Height="33" Background="#21262D" BorderBrush="#2D333E" BorderThickness="1" CornerRadius="4">
+                                    <Border Margin="2.5" Background="#0C1A12" BorderBrush="#143A22" BorderThickness="0.8" CornerRadius="2">
+                                        <Grid>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock Text="&lt;" FontSize="11" FontWeight="Bold" Foreground="#2EB856" Margin="0,0,1,0"/>
+                                                <TextBlock Text="/" FontSize="10" FontWeight="Bold" Foreground="#3FB950"/>
+                                                <TextBlock Text="&gt;" FontSize="11" FontWeight="Bold" Foreground="#2EB856" Margin="1,0,0,0"/>
+                                            </StackPanel>
+                                            <Rectangle Height="1" Fill="#104D27" Opacity="0.4" VerticalAlignment="Bottom" Margin="2,0,2,2"/>
+                                        </Grid>
+                                    </Border>
                                 </Border>
-                            </Border>
-                            <!-- Power indicator light -->
-                            <Ellipse Canvas.Left="23" Canvas.Top="35" Width="2" Height="2" Fill="#3FB950"/>
-                        </Canvas>
+                                <!-- Power indicator light -->
+                                <Ellipse Canvas.Left="23" Canvas.Top="35" Width="2" Height="2" Fill="#3FB950"/>
+                            </Canvas>
 
-                        <!-- Right: Cute Coffee Mug with Steam -->
-                        <Canvas Width="16" Height="22" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,3,6">
-                            <Path Data="M 7 4 C 6 2, 9 1, 7 0" Stroke="#484F58" StrokeThickness="1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Fill="Transparent"/>
-                            <Rectangle Canvas.Left="2" Canvas.Top="7" Width="10" Height="11" RadiusX="1.5" RadiusY="1.5" Fill="#E6EDF3"/>
-                            <Rectangle Canvas.Left="2" Canvas.Top="11" Width="10" Height="2" Fill="#238C44"/>
-                            <Path Data="M 12 9 C 15 9, 15 15, 12 15" Stroke="#C9D1D9" StrokeThickness="1.5" Fill="Transparent"/>
-                        </Canvas>
-                    </Grid>
+                            <!-- Right: Cute Coffee Mug with Steam -->
+                            <Canvas Width="16" Height="22" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,3,6">
+                                <Path Data="M 7 4 C 6 2, 9 1, 7 0" Stroke="#555E69" StrokeThickness="1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Fill="Transparent"/>
+                                <Rectangle Canvas.Left="2" Canvas.Top="7" Width="10" Height="11" RadiusX="1.5" RadiusY="1.5" Fill="#E6EDF3"/>
+                                <Rectangle Canvas.Left="2" Canvas.Top="11" Width="10" Height="2" Fill="#238C44"/>
+                                <Path Data="M 12 9 C 15 9, 15 15, 12 15" Stroke="#C9D1D9" StrokeThickness="1.5" Fill="Transparent"/>
+                            </Canvas>
+                        </Grid>
+                    </Border>
 
-                    <!-- Center/Left: Identity & Primary Hero Metric (74 SOLVED) -->
-                    <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                        <!-- Identity Mode -->
+                    <!-- Col 1: Identity, Solved Counter & Tactile Difficulty Blocks -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <!-- Identity Row -->
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- Display Mode -->
                             <StackPanel Orientation="Horizontal" 
@@ -563,19 +538,81 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Primary Metric Line: 74 SOLVED with Quiet Difficulty Breakdown -->
-                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding TotalSolved}" FontSize="24" FontWeight="Bold" Foreground="#F0F6FC" VerticalAlignment="Center"/>
-                            <TextBlock Text="SOLVED" FontSize="10" FontWeight="Bold" Foreground="#7D8590" Margin="6,0,10,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding EasySolved}" FontSize="11" FontWeight="SemiBold" Foreground="#3FB950" VerticalAlignment="Center"/>
-                            <TextBlock Text=" easy  ·  " FontSize="10.5" Foreground="#6E7681" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding MediumSolved}" FontSize="11" FontWeight="SemiBold" Foreground="#D29922" VerticalAlignment="Center"/>
-                            <TextBlock Text=" medium  ·  " FontSize="10.5" Foreground="#6E7681" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding HardSolved}" FontSize="11" FontWeight="SemiBold" Foreground="#F85149" VerticalAlignment="Center"/>
-                            <TextBlock Text=" hard" FontSize="10.5" Foreground="#6E7681" VerticalAlignment="Center"/>
+                        <!-- Solved Metric Row -->
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TotalSolved}" FontSize="24" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            <TextBlock Text="SOLVED" FontSize="10" FontWeight="Bold" Foreground="#7D8590" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Difficulty Blocks Row (Tactile compact containers) -->
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0" VerticalAlignment="Center">
+                            <!-- Easy Block -->
+                            <Border Background="#0E2417" BorderBrush="#1B4D2B" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,5,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding EasySolved}" FontSize="11" FontWeight="Bold" Foreground="#3FB950" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" EASY" FontSize="8.5" FontWeight="Bold" Foreground="#7EE787" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Medium Block -->
+                            <Border Background="#241B0E" BorderBrush="#4D361B" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,5,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding MediumSolved}" FontSize="11" FontWeight="Bold" Foreground="#E3B341" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" MEDIUM" FontSize="8.5" FontWeight="Bold" Foreground="#F0883E" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Hard Block -->
+                            <Border Background="#261214" BorderBrush="#542226" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding HardSolved}" FontSize="11" FontWeight="Bold" Foreground="#F85149" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" HARD" FontSize="8.5" FontWeight="Bold" Foreground="#FF7B72" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </StackPanel>
-                </DockPanel>
+
+                    <!-- Col 2: Controls & Tactile Amber Streak Box -->
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <!-- Controls Row: Year Dropdown & Refresh Button -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,5">
+                            <ComboBox ItemsSource="{Binding AvailableYears}"
+                                      SelectedItem="{Binding SelectedYear}"
+                                      Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
+                                      Style="{StaticResource DarkYearComboBox}"
+                                      Width="68"
+                                      Margin="0,0,6,0"
+                                      Focusable="False"/>
+
+                            <Button Content="↻" 
+                                    Command="{Binding RefreshCommand}" 
+                                    IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
+                                    ToolTip="Refresh from LeetCode"
+                                    Style="{StaticResource DarkIconButton}" 
+                                    Width="26" Height="22"
+                                    FontSize="11"
+                                    FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <!-- Tactile Amber Streak Box: Current Streak + Max Streak -->
+                        <Border Background="#1C1710" BorderBrush="#463116" BorderThickness="1" CornerRadius="6" Padding="10,5">
+                            <StackPanel Orientation="Vertical">
+                                <!-- Line 1: Current Streak -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock Text="🔥" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding CurrentStreak}" FontSize="15" FontWeight="Bold" Foreground="#F2CC60" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" DAY STREAK" FontSize="9" FontWeight="Bold" Foreground="#E3B341" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <!-- Line 2: Max Streak -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="MAX " FontSize="8.5" FontWeight="SemiBold" Foreground="#8B949E"/>
+                                    <TextBlock Text="{Binding LongestStreak, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="#E6EDF3"/>
+                                    <TextBlock Text="D" FontSize="8.5" FontWeight="SemiBold" Foreground="#8B949E"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
 
                 <!-- Row 2: Subtle Activity Header Line -->
                 <DockPanel Grid.Row="2" Margin="2,5,2,2">
@@ -596,14 +633,13 @@
                     <!-- Selected-Year Telemetry & Hover Info -->
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                         <TextBlock Text="{Binding SelectedYear}" FontSize="10" FontWeight="Bold" Foreground="#58A6FF"/>
-                        <TextBlock Text=" · " FontSize="10" Foreground="#3A414B"/>
+                        <TextBlock Text=" activity  ·  " FontSize="10" Foreground="#555E69"/>
                         <TextBlock Text="{Binding YearSubmissions}" FontSize="10" FontWeight="SemiBold" Foreground="#E6EDF3"/>
                         <TextBlock Text=" submissions  ·  " FontSize="10" Foreground="#555E69"/>
                         <TextBlock Text="{Binding YearActiveDays}" FontSize="10" FontWeight="SemiBold" Foreground="#E6EDF3"/>
                         <TextBlock Text=" active days  ·  " FontSize="10" Foreground="#555E69"/>
-                        <TextBlock Text="avg " FontSize="9.5" Foreground="#555E69"/>
                         <TextBlock Text="{Binding YearAverageText}" FontSize="10" FontWeight="SemiBold" Foreground="#E6EDF3"/>
-                        <TextBlock Text="/d" FontSize="9.5" Foreground="#555E69"/>
+                        <TextBlock Text="/day avg" FontSize="10" Foreground="#555E69"/>
 
                         <!-- Soft Divider -->
                         <TextBlock Text="  |  " FontSize="10" Foreground="#2A313C" Margin="6,0"/>
@@ -659,41 +695,43 @@
                     </StackPanel>
 
                     <!-- Handcrafted Workstation Illustration (Onboarding Edition) -->
-                    <Grid Width="96" Height="64" HorizontalAlignment="Center" Margin="0,0,0,10">
-                        <!-- Desk Surface Base -->
-                        <Rectangle Width="84" Height="5" RadiusX="2.5" RadiusY="2.5" Fill="#181B21" VerticalAlignment="Bottom" Margin="4,0,4,3"/>
-                        <Rectangle Width="76" Height="1" Fill="#282E37" VerticalAlignment="Bottom" Margin="8,0,8,8"/>
+                    <Border Background="#14181F" BorderBrush="#222730" BorderThickness="1" CornerRadius="6" Padding="10,6" HorizontalAlignment="Center" Margin="0,0,0,10">
+                        <Grid Width="96" Height="62" HorizontalAlignment="Center">
+                            <!-- Desk Surface Base -->
+                            <Rectangle Width="84" Height="4" RadiusX="2" RadiusY="2" Fill="#1A1E26" VerticalAlignment="Bottom" Margin="4,0,4,3"/>
+                            <Rectangle Width="76" Height="1" Fill="#2C323D" VerticalAlignment="Bottom" Margin="8,0,8,7"/>
 
-                        <!-- Left: Succulent Plant -->
-                        <Canvas Width="16" Height="24" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="3,0,0,6">
-                            <Path Data="M 8 12 C 5 8, 2 7, 3 3 C 6 4, 8 8, 8 12 Z" Fill="#238C44"/>
-                            <Path Data="M 8 12 C 8 7, 8 3, 10 1 C 12 4, 11 8, 8 12 Z" Fill="#3FB950"/>
-                            <Polygon Points="2,12 14,12 12,21 4,21" Fill="#2A221C"/>
-                            <Rectangle Canvas.Left="1" Canvas.Top="11" Width="14" Height="2" RadiusX="1" RadiusY="1" Fill="#3D2E24"/>
-                        </Canvas>
+                            <!-- Left: Succulent Plant -->
+                            <Canvas Width="16" Height="24" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="3,0,0,6">
+                                <Path Data="M 8 12 C 5 8, 2 7, 3 3 C 6 4, 8 8, 8 12 Z" Fill="#238C44"/>
+                                <Path Data="M 8 12 C 8 7, 8 3, 10 1 C 12 4, 11 8, 8 12 Z" Fill="#3FB950"/>
+                                <Polygon Points="2,12 14,12 12,21 4,21" Fill="#2A221C"/>
+                                <Rectangle Canvas.Left="1" Canvas.Top="11" Width="14" Height="2" RadiusX="1" RadiusY="1" Fill="#3D2E24"/>
+                            </Canvas>
 
-                        <!-- Center: Terminal Monitor showing connect prompt -->
-                        <Canvas Width="48" Height="46" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,3,0,0">
-                            <Rectangle Canvas.Left="19" Canvas.Top="36" Width="10" Height="8" Fill="#1E222A"/>
-                            <Rectangle Canvas.Left="14" Canvas.Top="43" Width="20" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#262C35"/>
-                            <Border Canvas.Left="3" Canvas.Top="4" Width="42" Height="33" Background="#21262D" BorderBrush="#2D333E" BorderThickness="1" CornerRadius="4">
-                                <Border Margin="2.5" Background="#0C1A12" BorderBrush="#143A22" BorderThickness="0.8" CornerRadius="2">
-                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <TextBlock Text="login: _" FontSize="8.5" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#3FB950"/>
-                                    </StackPanel>
+                            <!-- Center: Terminal Monitor showing connect prompt -->
+                            <Canvas Width="48" Height="46" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,2,0,0">
+                                <Rectangle Canvas.Left="19" Canvas.Top="36" Width="10" Height="8" Fill="#1E222A"/>
+                                <Rectangle Canvas.Left="14" Canvas.Top="43" Width="20" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#262C35"/>
+                                <Border Canvas.Left="3" Canvas.Top="4" Width="42" Height="33" Background="#21262D" BorderBrush="#2D333E" BorderThickness="1" CornerRadius="4">
+                                    <Border Margin="2.5" Background="#0C1A12" BorderBrush="#143A22" BorderThickness="0.8" CornerRadius="2">
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <TextBlock Text="login: _" FontSize="8.5" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#3FB950"/>
+                                        </StackPanel>
+                                    </Border>
                                 </Border>
-                            </Border>
-                            <Ellipse Canvas.Left="23" Canvas.Top="35" Width="2" Height="2" Fill="#D29922"/>
-                        </Canvas>
+                                <Ellipse Canvas.Left="23" Canvas.Top="35" Width="2" Height="2" Fill="#D29922"/>
+                            </Canvas>
 
-                        <!-- Right: Coffee Mug -->
-                        <Canvas Width="16" Height="22" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,3,6">
-                            <Path Data="M 7 4 C 6 2, 9 1, 7 0" Stroke="#484F58" StrokeThickness="1" Fill="Transparent"/>
-                            <Rectangle Canvas.Left="2" Canvas.Top="7" Width="10" Height="11" RadiusX="1.5" RadiusY="1.5" Fill="#E6EDF3"/>
-                            <Rectangle Canvas.Left="2" Canvas.Top="11" Width="10" Height="2" Fill="#238C44"/>
-                            <Path Data="M 12 9 C 15 9, 15 15, 12 15" Stroke="#C9D1D9" StrokeThickness="1.5" Fill="Transparent"/>
-                        </Canvas>
-                    </Grid>
+                            <!-- Right: Coffee Mug -->
+                            <Canvas Width="16" Height="22" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,3,6">
+                                <Path Data="M 7 4 C 6 2, 9 1, 7 0" Stroke="#555E69" StrokeThickness="1" Fill="Transparent"/>
+                                <Rectangle Canvas.Left="2" Canvas.Top="7" Width="10" Height="11" RadiusX="1.5" RadiusY="1.5" Fill="#E6EDF3"/>
+                                <Rectangle Canvas.Left="2" Canvas.Top="11" Width="10" Height="2" Fill="#238C44"/>
+                                <Path Data="M 12 9 C 15 9, 15 15, 12 15" Stroke="#C9D1D9" StrokeThickness="1.5" Fill="Transparent"/>
+                            </Canvas>
+                        </Grid>
+                    </Border>
 
                     <!-- Title -->
                     <TextBlock Text="CONNECT YOUR ACCOUNT" 

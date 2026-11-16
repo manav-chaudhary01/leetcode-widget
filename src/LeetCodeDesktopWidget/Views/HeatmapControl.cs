@@ -33,8 +33,8 @@ public class HeatmapControl : FrameworkElement
     private static readonly Pen CellBorderPen = CreateFrozenPen(Color.FromRgb(0x21, 0x26, 0x2D), 0.5);
     private static readonly Pen HoverPen = CreateFrozenPen(Color.FromRgb(0x58, 0xA6, 0xFF), 1.5);
 
-    // Label brush & font: quiet, understated typography
-    private static readonly Brush LabelBrush = CreateFrozenBrush(Color.FromRgb(0x5E, 0x66, 0x73));
+    // Label brush & font: clear, understated typography
+    private static readonly Brush LabelBrush = CreateFrozenBrush(Color.FromRgb(0x8B, 0x94, 0x9E));
     private static readonly Typeface LabelTypeface = new("Segoe UI Variable Text, Segoe UI, sans-serif");
 
     private readonly Dictionary<(int Col, int Row), DailySubmission> _gridMap = new();
@@ -131,7 +131,7 @@ public class HeatmapControl : FrameworkElement
                     culture,
                     FlowDirection.LeftToRight,
                     LabelTypeface,
-                    9.0,
+                    9.5,
                     LabelBrush,
                     VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
@@ -156,7 +156,8 @@ public class HeatmapControl : FrameworkElement
                 _ => Level0Brush
             };
 
-            dc.DrawRoundedRectangle(brush, CellBorderPen, rect, CellCornerRadius, CellCornerRadius);
+            Pen? borderPen = day.Level == ActivityLevel.None ? CellBorderPen : null;
+            dc.DrawRoundedRectangle(brush, borderPen, rect, CellCornerRadius, CellCornerRadius);
 
             // Draw highlight ring if hovered
             if (_hoveredCoord.HasValue && _hoveredCoord.Value == coord)
