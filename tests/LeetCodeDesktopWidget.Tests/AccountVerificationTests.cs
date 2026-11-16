@@ -313,4 +313,18 @@ public class AccountVerificationTests
             Assert.DoesNotContain("session", name);
         }
     }
+
+    [Fact]
+    public void OpenLeetCodeProfileCommand_IsDefinedAndExecutable()
+    {
+        using var vm = new MainViewModel(
+            new FakeLeetCodeService(),
+            new ConfigurationService(),
+            new CacheService(),
+            new RefreshCoordinator(),
+            new AccountVerificationService(new FakeLeetCodeService()));
+
+        Assert.NotNull(vm.OpenLeetCodeProfileCommand);
+        Assert.True(vm.OpenLeetCodeProfileCommand.CanExecute(null));
+    }
 }

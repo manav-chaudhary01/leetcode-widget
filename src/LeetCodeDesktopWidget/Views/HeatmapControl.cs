@@ -15,26 +15,26 @@ namespace LeetCodeDesktopWidget.Views;
 /// </summary>
 public class HeatmapControl : FrameworkElement
 {
-    private const double CellSize = 11.0;
-    private const double CellSpacing = 3.0;
+    private const double CellSize = 10.5;
+    private const double CellSpacing = 2.5;
     private const double Step = CellSize + CellSpacing;
-    private const double GridOriginX = 32.0;
-    private const double GridOriginY = 20.0;
-    private const double CellCornerRadius = 2.0;
+    private const double GridOriginX = 26.0;
+    private const double GridOriginY = 18.0;
+    private const double CellCornerRadius = 1.5;
 
     // Pre-allocated, frozen brushes for 5 activity levels in refined dark charcoal + green palette
-    private static readonly Brush Level0Brush = CreateFrozenBrush(Color.FromRgb(0x16, 0x1B, 0x22));
+    private static readonly Brush Level0Brush = CreateFrozenBrush(Color.FromRgb(0x15, 0x18, 0x1D));
     private static readonly Brush Level1Brush = CreateFrozenBrush(Color.FromRgb(0x0E, 0x3A, 0x22));
     private static readonly Brush Level2Brush = CreateFrozenBrush(Color.FromRgb(0x18, 0x63, 0x34));
     private static readonly Brush Level3Brush = CreateFrozenBrush(Color.FromRgb(0x23, 0x8C, 0x44));
     private static readonly Brush Level4Brush = CreateFrozenBrush(Color.FromRgb(0x2E, 0xB8, 0x56));
 
     // Pre-allocated pens for cell borders and hover ring
-    private static readonly Pen CellBorderPen = CreateFrozenPen(Color.FromRgb(0x23, 0x27, 0x2E), 0.5);
+    private static readonly Pen CellBorderPen = CreateFrozenPen(Color.FromRgb(0x21, 0x26, 0x2D), 0.5);
     private static readonly Pen HoverPen = CreateFrozenPen(Color.FromRgb(0x58, 0xA6, 0xFF), 1.5);
 
     // Label brush & font: quiet, understated typography
-    private static readonly Brush LabelBrush = CreateFrozenBrush(Color.FromRgb(0x63, 0x6E, 0x7B));
+    private static readonly Brush LabelBrush = CreateFrozenBrush(Color.FromRgb(0x5E, 0x66, 0x73));
     private static readonly Typeface LabelTypeface = new("Segoe UI Variable Text, Segoe UI, sans-serif");
 
     private readonly Dictionary<(int Col, int Row), DailySubmission> _gridMap = new();
@@ -131,12 +131,12 @@ public class HeatmapControl : FrameworkElement
                     culture,
                     FlowDirection.LeftToRight,
                     LabelTypeface,
-                    9.5,
+                    9.0,
                     LabelBrush,
                     VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
                 double x = GridOriginX + (col * Step);
-                dc.DrawText(formattedMonth, new Point(x, 2));
+                dc.DrawText(formattedMonth, new Point(x, 1));
             }
         }
 
@@ -173,12 +173,12 @@ public class HeatmapControl : FrameworkElement
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
             LabelTypeface,
-            9.0,
+            8.5,
             LabelBrush,
             VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
         double y = GridOriginY + (row * Step) - 1;
-        dc.DrawText(formatted, new Point(2, y));
+        dc.DrawText(formatted, new Point(1, y));
     }
 
     protected override void OnMouseMove(MouseEventArgs e)

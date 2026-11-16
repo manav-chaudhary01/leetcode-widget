@@ -369,6 +369,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public ICommand CheckVerificationCommand { get; }
     public ICommand CancelVerificationCommand { get; }
     public ICommand CopyVerificationTokenCommand { get; }
+    public ICommand OpenLeetCodeProfileCommand { get; }
 
     public MainViewModel(
         ILeetCodeService? leetCodeService = null,
@@ -502,6 +503,23 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 {
                     VerificationStatusText = $"Token: {VerificationToken}";
                 }
+            }
+        });
+
+        OpenLeetCodeProfileCommand = new RelayCommand(_ =>
+        {
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://leetcode.com/profile",
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch
+            {
+                // Fail safely if default browser cannot be launched
             }
         });
 
