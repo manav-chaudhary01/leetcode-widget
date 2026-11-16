@@ -111,6 +111,7 @@ public class HeatmapTests
     public void MainViewModel_YearSwitchingLoadsNewActivity()
     {
         var vm = new MainViewModel();
+        vm.SetVerifiedForTesting("test_user");
         Assert.Equal(2026, vm.SelectedYear);
         Assert.NotNull(vm.CurrentActivity);
         Assert.Equal(2026, vm.CurrentActivity.Year);

@@ -17,14 +17,18 @@ public class CacheService : ICacheService
     };
 
     private readonly object _fileLock = new();
+    private readonly bool _isCustomPath;
+    private readonly string _baseDirectory;
     public string CacheFilePath { get; }
 
     public CacheService(string? customPath = null)
     {
-        CacheFilePath = customPath ?? Path.Combine(
+        _isCustomPath = !string.IsNullOrEmpty(customPath);
+        _baseDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "LeetCodeDesktopWidget",
-            "cache.json");
+            "LeetCodeDesktopWidget");
+
+        CacheFilePath = customPath ?? Path.Combine(_baseDirectory, "cache.json");
     }
 
     public Task<CachedActivityData?> LoadCacheAsync(string? expectedUsername = null)
@@ -33,12 +37,23 @@ public class CacheService : ICacheService
         {
             try
             {
-                if (!File.Exists(CacheFilePath))
+                string targetPath = CacheFilePath;
+                if (!_isCustomPath && !string.IsNullOrWhiteSpace(expectedUsername))
+                {
+                    string cleanUser = WidgetConfig.SanitizeUsername(expectedUsername);
+                    string userSpecificPath = Path.Combine(_baseDirectory, $"cache_{cleanUser}.json");
+                    if (File.Exists(userSpecificPath))
+                    {
+                        targetPath = userSpecificPath;
+                    }
+                }
+
+                if (!File.Exists(targetPath))
                 {
                     return Task.FromResult<CachedActivityData?>(null);
                 }
 
-                var json = File.ReadAllText(CacheFilePath);
+                var json = File.ReadAllText(targetPath);
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     return Task.FromResult<CachedActivityData?>(null);
@@ -94,6 +109,15 @@ public class CacheService : ICacheService
 
                 File.WriteAllText(tempPath, json);
                 File.Move(tempPath, CacheFilePath, overwrite: true);
+
+                if (!_isCustomPath)
+                {
+                    string cleanUser = WidgetConfig.SanitizeUsername(stats.Username);
+                    string userPath = Path.Combine(_baseDirectory, $"cache_{cleanUser}.json");
+                    string userTemp = userPath + ".tmp";
+                    File.WriteAllText(userTemp, json);
+                    File.Move(userTemp, userPath, overwrite: true);
+                }
             }
             catch
             {

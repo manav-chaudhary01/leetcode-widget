@@ -208,7 +208,7 @@ public class StreakCalculationTests
     }
 
     [Fact]
-    public void MainViewModel_YearSelectionChanges_UpdatesYearStatisticsImmediately()
+    public async Task MainViewModel_YearSelectionChanges_UpdatesYearStatisticsImmediately()
     {
         var data = new Dictionary<DateOnly, int>
         {
@@ -254,12 +254,12 @@ public class StreakCalculationTests
 
         var vm = new MainViewModel(new LeetCodeService(new HttpClient(handler)))
         {
-            Username = "coder",
             ReferenceDate = new DateOnly(2025, 12, 31)
         };
+        vm.SetVerifiedForTesting("coder");
 
         // Trigger sync
-        vm.RefreshCommand.Execute(null);
+        await vm.PerformSyncAsync(CancellationToken.None);
 
         // All-time difficulty stats verified
         Assert.Equal(150, vm.TotalSolved);

@@ -277,7 +277,12 @@ public class SynchronizationRegressionTests : IDisposable
         var configService = new ConfigurationService(Path.Combine(_tempDirectory, "config_test.json"));
         var cacheService = new CacheService(Path.Combine(_tempDirectory, "cache_test.json"));
 
-        await configService.SaveConfigurationAsync(new WidgetConfig { Username = "test_user" });
+        await configService.SaveConfigurationAsync(new WidgetConfig 
+        { 
+            Username = "test_user",
+            VerifiedUsername = "test_user",
+            VerifiedAt = DateTime.UtcNow
+        });
 
         var vm = new MainViewModel(leetService, configService, cacheService);
         await vm.InitializeAsync();
@@ -302,7 +307,12 @@ public class SynchronizationRegressionTests : IDisposable
         var configService = new ConfigurationService(Path.Combine(_tempDirectory, "config_cancel.json"));
         var cacheService = new CacheService(Path.Combine(_tempDirectory, "cache_cancel.json"));
 
-        await configService.SaveConfigurationAsync(new WidgetConfig { Username = "test_user" });
+        await configService.SaveConfigurationAsync(new WidgetConfig 
+        { 
+            Username = "test_user",
+            VerifiedUsername = "test_user",
+            VerifiedAt = DateTime.UtcNow
+        });
 
         var vm = new MainViewModel(leetService, configService, cacheService);
         await vm.InitializeAsync();
@@ -322,6 +332,14 @@ public class SynchronizationRegressionTests : IDisposable
         var configService = new ConfigurationService(Path.Combine(_tempDirectory, "config_pres.json"));
         var cacheService = new CacheService(Path.Combine(_tempDirectory, "cache_pres.json"));
 
+        await configService.SaveConfigurationAsync(new WidgetConfig
+        {
+            Username = "manav_chaudhary01",
+            VerifiedUsername = "manav_chaudhary01",
+            VerifiedAt = DateTime.UtcNow,
+            SelectedYear = 2026
+        });
+
         var initialDate = new DateOnly(2026, 6, 15);
         await cacheService.SaveCacheAsync(new LeetCodeUserStats
         {
@@ -340,7 +358,7 @@ public class SynchronizationRegressionTests : IDisposable
         var leetService = new LeetCodeService(new HttpClient(handler));
 
         var vm = new MainViewModel(leetService, configService, cacheService);
-        vm.Username = "manav_chaudhary01";
+        vm.SetVerifiedForTesting("manav_chaudhary01");
         vm.SelectedYear = 2026;
 
         await vm.InitializeAsync();
@@ -365,6 +383,14 @@ public class SynchronizationRegressionTests : IDisposable
         var configService = new ConfigurationService(Path.Combine(_tempDirectory, "config_indep.json"));
         var cacheService = new CacheService(Path.Combine(_tempDirectory, "cache_indep.json"));
 
+        await configService.SaveConfigurationAsync(new WidgetConfig
+        {
+            Username = "manav_chaudhary01",
+            VerifiedUsername = "manav_chaudhary01",
+            VerifiedAt = DateTime.UtcNow,
+            SelectedYear = 2026
+        });
+
         var initialDate = new DateOnly(2026, 6, 15);
         await cacheService.SaveCacheAsync(new LeetCodeUserStats
         {
@@ -386,7 +412,7 @@ public class SynchronizationRegressionTests : IDisposable
         var leetService = new LeetCodeService(new HttpClient(handler));
 
         var vm = new MainViewModel(leetService, configService, cacheService);
-        vm.Username = "manav_chaudhary01";
+        vm.SetVerifiedForTesting("manav_chaudhary01");
         vm.SelectedYear = 2026;
         await vm.InitializeAsync();
 
@@ -409,9 +435,9 @@ public class SynchronizationRegressionTests : IDisposable
         var cacheService = new CacheService(Path.Combine(_tempDirectory, "cache_multi.json"));
 
         // First response: year 2026 has activity
-        var response2026 = ValidCalendarAndStatsResponse;
+        var response2026 = ValidCalendarAndStatsResponse.Replace("\"activeYears\": [2026]", "\"activeYears\": [2026, 2025]");
         // Second response: year 2025 has 0 activity
-        var response2025 = EmptyCalendarResponse;
+        var response2025 = EmptyCalendarResponse.Replace("\"activeYears\": [2026]", "\"activeYears\": [2026, 2025]");
 
         int requestCount = 0;
         var handler = new MockHttpMessageHandler(req =>
@@ -426,7 +452,7 @@ public class SynchronizationRegressionTests : IDisposable
         var leetService = new LeetCodeService(new HttpClient(handler));
 
         var vm = new MainViewModel(leetService, configService, cacheService);
-        vm.Username = "manav_chaudhary01";
+        vm.SetVerifiedForTesting("manav_chaudhary01");
         vm.SelectedYear = 2026;
 
         // Fetch 2026
@@ -459,7 +485,7 @@ public class SynchronizationRegressionTests : IDisposable
         var cacheService = new CacheService(Path.Combine(_tempDirectory, "cache_hm.json"));
 
         var vm = new MainViewModel(leetService, configService, cacheService);
-        vm.Username = "manav_chaudhary01";
+        vm.SetVerifiedForTesting("manav_chaudhary01");
         vm.SelectedYear = 2026;
 
         await vm.PerformSyncAsync(CancellationToken.None);

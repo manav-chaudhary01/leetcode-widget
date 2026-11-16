@@ -28,6 +28,7 @@
     <Window.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <helpers:BooleanToVisibilityConverter x:Key="InverseBoolToVis" Invert="True"/>
+        <helpers:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVis"/>
 
         <!-- Dark minimal ToolTip -->
         <Style TargetType="ToolTip">
@@ -73,15 +74,17 @@
             Padding="14,12"
             SnapsToDevicePixels="True">
         <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+            <!-- Active Verified Widget Surface (Visible only when IsAccountVerified == true) -->
+            <Grid Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <!-- Row 0: Header with Username, All-Time Solved Breakdown, and Streaks -->
-            <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                <!-- Row 0: Header with Username, All-Time Solved Breakdown, and Streaks -->
+                <DockPanel Grid.Row="0" Margin="0,0,0,8">
                 <!-- Left: Branding & Username -->
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                     <Ellipse x:Name="DesktopStatusDot" Width="9" Height="9" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
@@ -201,6 +204,7 @@
                     <!-- Year Dropdown -->
                     <ComboBox ItemsSource="{Binding AvailableYears}"
                               SelectedItem="{Binding SelectedYear}"
+                              Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
                               Style="{StaticResource DarkYearComboBox}"
                               Width="72"
                               Margin="0,0,6,0"
@@ -287,13 +291,87 @@
                     <TextBlock Text="More" FontSize="10" Foreground="#6E7681" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </DockPanel>
+        </Grid>
 
-            <!-- Account Ownership Verification Overlay -->
-            <Border Grid.RowSpan="4" 
-                    Background="#FA0D1117" 
-                    CornerRadius="8" 
-                    Visibility="{Binding IsVerificationPromptOpen, Converter={StaticResource BoolToVis}}"
-                    Padding="20,12">
+        <!-- Minimal Onboarding Surface (Visible only when IsAccountVerified == false) -->
+        <Grid Visibility="{Binding IsAccountVerified, Converter={StaticResource InverseBoolToVis}}"
+              VerticalAlignment="Center" HorizontalAlignment="Center">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <!-- Brand -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                    <Ellipse x:Name="OnboardingStatusDot" Width="9" Height="9" Fill="#238636" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
+                    <TextBlock Text="LEETCODE" 
+                               FontSize="11.5" 
+                               FontWeight="Bold" 
+                               Foreground="#8B949E" 
+                               FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Title -->
+                <TextBlock Text="Connect your account" 
+                           FontSize="16" 
+                           FontWeight="SemiBold" 
+                           Foreground="#C9D1D9" 
+                           HorizontalAlignment="Center" 
+                           Margin="0,0,0,14"/>
+
+                <!-- Input + Action -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                    <TextBox x:Name="OnboardingUsernameBox"
+                             Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                             Width="190"
+                             FontSize="12"
+                             Background="#161B22"
+                             Foreground="#C9D1D9"
+                             BorderBrush="#30363D"
+                             BorderThickness="1"
+                             Padding="8,5"
+                             VerticalContentAlignment="Center"
+                             ToolTip="Enter LeetCode username">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding StartVerificationCommand}"/>
+                            <KeyBinding Key="Enter" Command="{Binding StartVerificationCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <Button Content="Verify Ownership"
+                            Command="{Binding StartVerificationCommand}"
+                            Background="#238636"
+                            Foreground="#FFFFFF"
+                            BorderBrush="#2EA043"
+                            BorderThickness="1"
+                            Padding="14,5"
+                            Margin="8,0,0,0"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Cursor="Hand"
+                            Focusable="False"/>
+                </StackPanel>
+
+                <!-- Subtitle / Warning -->
+                <TextBlock Text="Your account must be verified before activity is displayed."
+                           FontSize="11"
+                           Foreground="#8B949E"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,8"/>
+
+                <!-- Status / Error Text -->
+                <TextBlock Text="{Binding VerificationStatusText}"
+                           Visibility="{Binding VerificationStatusText, Converter={StaticResource StringNotEmptyToVis}}"
+                           FontSize="11"
+                           Foreground="#E3B341"
+                           HorizontalAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="450"
+                           TextAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Account Ownership Verification Overlay -->
+        <Border Background="#FA0D1117" 
+                CornerRadius="8" 
+                Visibility="{Binding IsVerificationPromptOpen, Converter={StaticResource BoolToVis}}"
+                Padding="20,12">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>

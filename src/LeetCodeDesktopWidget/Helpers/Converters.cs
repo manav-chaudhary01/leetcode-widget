@@ -22,3 +22,20 @@ public class BooleanToVisibilityConverter : IValueConverter
         return value is Visibility v && (v == Visibility.Visible) ^ Invert;
     }
 }
+
+public class StringNotEmptyToVisibilityConverter : IValueConverter
+{
+    public bool Invert { get; set; }
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        bool hasText = value is string s && !string.IsNullOrWhiteSpace(s);
+        if (Invert) hasText = !hasText;
+        return hasText ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotSupportedException();
+    }
+}

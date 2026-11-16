@@ -209,9 +209,9 @@ public class LeetCodeServiceTests
         var service = new LeetCodeService(client);
         var vm = new MainViewModel(service)
         {
-            Username = "test_coder",
             ReferenceDate = new DateOnly(2026, 3, 11)
         };
+        vm.SetVerifiedForTesting("test_coder");
 
         // 1. Initial Successful Sync
         await vm.RefreshAsync();

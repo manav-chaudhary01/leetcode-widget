@@ -403,6 +403,8 @@ public class PersistenceAndRefreshTests : IDisposable
         await configService.SaveConfigurationAsync(new WidgetConfig
         {
             Username = "persisted_user",
+            VerifiedUsername = "persisted_user",
+            VerifiedAt = DateTime.UtcNow,
             SelectedYear = 2025,
             RefreshIntervalMinutes = 45
         });

@@ -58,20 +58,28 @@ public partial class MainWindow : Window
                 {
                     _ = Dispatcher.InvokeAsync(() =>
                     {
-                        UsernameInputBox.Focus();
-                        UsernameInputBox.SelectAll();
+                        UsernameInputBox?.Focus();
+                        UsernameInputBox?.SelectAll();
                     });
                 }
             };
 
             await vm.InitializeAsync();
 
-            if (vm.IsEditingUsername)
+            if (!vm.IsAccountVerified)
             {
                 _ = Dispatcher.InvokeAsync(() =>
                 {
-                    UsernameInputBox.Focus();
-                    UsernameInputBox.SelectAll();
+                    OnboardingUsernameBox?.Focus();
+                    OnboardingUsernameBox?.SelectAll();
+                });
+            }
+            else if (vm.IsEditingUsername)
+            {
+                _ = Dispatcher.InvokeAsync(() =>
+                {
+                    UsernameInputBox?.Focus();
+                    UsernameInputBox?.SelectAll();
                 });
             }
         }
@@ -114,6 +122,10 @@ public partial class MainWindow : Window
         if (DesktopStatusDot != null)
         {
             DesktopStatusDot.ToolTip = statusText;
+        }
+        if (OnboardingStatusDot != null)
+        {
+            OnboardingStatusDot.ToolTip = statusText;
         }
     }
 

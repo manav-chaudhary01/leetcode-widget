@@ -12,6 +12,16 @@ using LeetCodeDesktopWidget.Services;
 
 namespace LeetCodeDesktopWidget.ViewModels;
 
+public enum WidgetState
+{
+    Unconfigured,
+    VerificationRequired,
+    VerificationInProgress,
+    VerifiedSyncing,
+    Ready,
+    Offline
+}
+
 /// <summary>
 /// Presentation logic and state manager connecting real LeetCode data, persistent caching,
 /// configuration, and automatic background refresh to the desktop widget UI.
@@ -24,6 +34,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private readonly IRefreshCoordinator _refreshCoordinator;
     private readonly IAccountVerificationService _verificationService;
 
+    private WidgetState _state = WidgetState.Unconfigured;
     private string _username = "";
     private string _usernameBeforeEdit = "";
     private bool _isEditingUsername;
@@ -34,7 +45,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private string _verificationToken = "";
     private string _verificationStatusText = "";
     private int _selectedYear;
-    private YearlyActivity _currentActivity;
+    private YearlyActivity? _currentActivity;
     private DailySubmission? _hoveredDay;
     private string _hoverInfoText = "Hover over a square to view submissions";
     private bool _isSyncing;
@@ -55,6 +66,44 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     public ObservableCollection<int> AvailableYears { get; } = new();
 
+    public bool HasAvailableYears => AvailableYears.Count > 0;
+
+    public WidgetState State
+    {
+        get => _state;
+        private set
+        {
+            if (_state != value)
+            {
+                _state = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsUnconfigured));
+                OnPropertyChanged(nameof(IsVerificationRequired));
+                OnPropertyChanged(nameof(IsVerificationInProgress));
+                OnPropertyChanged(nameof(IsVerifiedSyncing));
+                OnPropertyChanged(nameof(IsReady));
+                OnPropertyChanged(nameof(IsOffline));
+                OnPropertyChanged(nameof(CanDisplayActivity));
+            }
+        }
+    }
+
+    public bool IsUnconfigured => State == WidgetState.Unconfigured;
+    public bool IsVerificationRequired => State == WidgetState.VerificationRequired;
+    public bool IsVerificationInProgress => State == WidgetState.VerificationInProgress;
+    public bool IsVerifiedSyncing => State == WidgetState.VerifiedSyncing;
+    public bool IsReady => State == WidgetState.Ready;
+    public bool IsOffline => State == WidgetState.Offline;
+
+    public string? ActivityDataUsername => _lastSuccessfulStats?.Username;
+
+    public bool HasValidActivityForCurrentAccount =>
+        IsAccountVerified &&
+        !string.IsNullOrWhiteSpace(ActivityDataUsername) &&
+        string.Equals(ActivityDataUsername, VerifiedUsername, StringComparison.OrdinalIgnoreCase);
+
+    public bool CanDisplayActivity => HasValidActivityForCurrentAccount;
+
     public string Username
     {
         get => _username;
@@ -67,6 +116,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 OnPropertyChanged(nameof(DisplayUsername));
                 OnPropertyChanged(nameof(IsAccountVerified));
                 OnPropertyChanged(nameof(VerificationBadgeTooltip));
+                OnPropertyChanged(nameof(CanDisplayActivity));
+                OnPropertyChanged(nameof(HasValidActivityForCurrentAccount));
             }
         }
     }
@@ -84,6 +135,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsAccountVerified));
                 OnPropertyChanged(nameof(VerificationBadgeTooltip));
+                OnPropertyChanged(nameof(CanDisplayActivity));
+                OnPropertyChanged(nameof(HasValidActivityForCurrentAccount));
             }
         }
     }
@@ -186,14 +239,17 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 OnPropertyChanged();
                 UpdateActivityForSelectedYear();
                 _ = SaveConfigAsync();
-                _ = RequestManualRefreshAsync();
+                if (IsAccountVerified)
+                {
+                    _ = RequestManualRefreshAsync();
+                }
             }
         }
     }
 
-    public YearlyActivity CurrentActivity
+    public YearlyActivity? CurrentActivity
     {
-        get => _currentActivity;
+        get => HasValidActivityForCurrentAccount ? _currentActivity : null;
         private set
         {
             _currentActivity = value;
@@ -247,29 +303,33 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    // All-time Solved Counts
-    public int TotalSolved => _lastSuccessfulStats?.TotalSolved ?? 0;
-    public int EasySolved => _lastSuccessfulStats?.EasySolved ?? 0;
-    public int MediumSolved => _lastSuccessfulStats?.MediumSolved ?? 0;
-    public int HardSolved => _lastSuccessfulStats?.HardSolved ?? 0;
-    public bool HasSolvedStats => _lastSuccessfulStats != null;
+    // All-time Solved Counts (Gated strictly by verification and account identity)
+    public int TotalSolved => HasValidActivityForCurrentAccount ? (_lastSuccessfulStats?.TotalSolved ?? 0) : 0;
+    public int EasySolved => HasValidActivityForCurrentAccount ? (_lastSuccessfulStats?.EasySolved ?? 0) : 0;
+    public int MediumSolved => HasValidActivityForCurrentAccount ? (_lastSuccessfulStats?.MediumSolved ?? 0) : 0;
+    public int HardSolved => HasValidActivityForCurrentAccount ? (_lastSuccessfulStats?.HardSolved ?? 0) : 0;
+    public bool HasSolvedStats => HasValidActivityForCurrentAccount && _lastSuccessfulStats != null;
 
     // All-time Calculated Streaks (computed purely from daily submissions)
-    public int CurrentStreak => _streaks.CurrentStreak;
-    public int LongestStreak => _streaks.LongestStreak;
+    public int CurrentStreak => HasValidActivityForCurrentAccount ? _streaks.CurrentStreak : 0;
+    public int LongestStreak => HasValidActivityForCurrentAccount ? _streaks.LongestStreak : 0;
 
     // Selected-Year Statistics
-    public YearlyStatistics CurrentYearStats => _currentYearStats;
-    public int YearSubmissions => _currentYearStats.TotalSubmissions;
-    public int YearActiveDays => _currentYearStats.ActiveDays;
-    public string YearAverageText => _currentYearStats.ActiveDays > 0 ? $"{_currentYearStats.AveragePerActiveDay:F1}" : "0";
-    public string MostActiveDayText => _currentYearStats.MostActiveDay?.ToString() ?? "None";
-    public int YearLongestStreak => _currentYearStats.LongestStreak;
+    public YearlyStatistics CurrentYearStats => HasValidActivityForCurrentAccount ? _currentYearStats : YearlyStatistics.Empty(SelectedYear);
+    public int YearSubmissions => HasValidActivityForCurrentAccount ? _currentYearStats.TotalSubmissions : 0;
+    public int YearActiveDays => HasValidActivityForCurrentAccount ? _currentYearStats.ActiveDays : 0;
+    public string YearAverageText => (HasValidActivityForCurrentAccount && _currentYearStats.ActiveDays > 0)
+        ? $"{_currentYearStats.AveragePerActiveDay:F1}"
+        : "0";
+    public string MostActiveDayText => HasValidActivityForCurrentAccount
+        ? (_currentYearStats.MostActiveDay?.ToString() ?? "None")
+        : "None";
+    public int YearLongestStreak => HasValidActivityForCurrentAccount ? _currentYearStats.LongestStreak : 0;
 
-    public int TotalSubmissions => _currentActivity?.TotalSubmissions ?? 0;
-    public int ActiveDays => _currentActivity?.ActiveDays ?? 0;
+    public int TotalSubmissions => HasValidActivityForCurrentAccount ? (_currentActivity?.TotalSubmissions ?? 0) : 0;
+    public int ActiveDays => HasValidActivityForCurrentAccount ? (_currentActivity?.ActiveDays ?? 0) : 0;
 
-    public string SummaryStatsText => _currentActivity != null
+    public string SummaryStatsText => (HasValidActivityForCurrentAccount && _currentActivity != null)
         ? $"{_currentActivity.TotalSubmissions} submissions in {_currentActivity.Year}"
         : "";
 
@@ -296,10 +356,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _verificationService = verificationService ?? new AccountVerificationService(_leetCodeService);
 
         _selectedYear = DateTime.Now.Year;
-        _currentActivity = YearlyActivity.Create(_selectedYear);
         _currentYearStats = YearlyStatistics.Empty(_selectedYear);
-
-        PopulateDefaultYears();
+        _state = WidgetState.Unconfigured;
 
         RefreshCommand = new RelayCommand(async _ => await RefreshAsync());
         ToggleEditUsernameCommand = new RelayCommand(_ =>
@@ -321,7 +379,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             if (string.IsNullOrWhiteSpace(Username))
             {
-                SyncStatusText = "Configure a username before verifying ownership.";
+                VerificationStatusText = "Please enter a username before verifying ownership.";
+                State = WidgetState.Unconfigured;
                 return;
             }
 
@@ -329,12 +388,14 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             {
                 var challenge = _verificationService.GenerateChallenge(Username);
                 VerificationToken = challenge.Token;
-                VerificationStatusText = "Paste the token into your LeetCode About Me bio and click 'Verify Now'.";
+                VerificationStatusText = "Paste the token into your LeetCode About Me bio and click 'Verify Ownership'.";
+                State = WidgetState.VerificationInProgress;
                 IsVerificationPromptOpen = true;
             }
             catch (Exception ex)
             {
                 VerificationStatusText = ex.Message;
+                State = WidgetState.VerificationRequired;
             }
         });
 
@@ -344,6 +405,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
             IsVerifying = true;
             VerificationStatusText = "Checking LeetCode profile 'About Me' field...";
+            State = WidgetState.VerificationInProgress;
 
             var result = await _verificationService.VerifyOwnershipAsync(Username).ConfigureAwait(false);
 
@@ -354,11 +416,36 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 VerifiedUsername = result.VerifiedUsername ?? Username;
                 VerifiedAt = result.VerifiedAtUtc ?? DateTime.UtcNow;
                 IsVerificationPromptOpen = false;
-                SyncStatusText = "Account verified! You can now remove the token from your profile.";
+                VerificationToken = "";
+                VerificationStatusText = "";
+                SyncStatusText = "Account verified! Syncing...";
+                State = WidgetState.VerifiedSyncing;
+
                 await SaveConfigAsync().ConfigureAwait(false);
+
+                // Restore cache for this newly verified user if available
+                var cached = await _cacheService.LoadCacheAsync(VerifiedUsername).ConfigureAwait(false);
+                if (cached != null)
+                {
+                    var cleanCached = WidgetConfig.SanitizeUsername(cached.Username);
+                    var cleanVerified = WidgetConfig.SanitizeUsername(VerifiedUsername);
+                    if (string.Equals(cleanCached, cleanVerified, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _lastSuccessfulStats = cached.ToUserStats();
+                        PopulateActiveYears(_lastSuccessfulStats.ActiveYears);
+                        _streaks = StreakCalculationService.CalculateStreaks(
+                            _lastSuccessfulStats.SubmissionCounts,
+                            ReferenceDate);
+                        UpdateActivityForSelectedYear();
+                        NotifyStatsChanged();
+                    }
+                }
+
+                await RequestManualRefreshAsync().ConfigureAwait(false);
             }
             else
             {
+                State = WidgetState.VerificationRequired;
                 VerificationStatusText = result.ErrorMessage ?? "Verification failed.";
             }
         });
@@ -369,6 +456,9 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             IsVerificationPromptOpen = false;
             VerificationToken = "";
             VerificationStatusText = "";
+            State = string.IsNullOrWhiteSpace(Username) 
+                ? WidgetState.Unconfigured 
+                : (IsAccountVerified ? WidgetState.Ready : WidgetState.VerificationRequired);
         });
 
         CopyVerificationTokenCommand = new RelayCommand(_ =>
@@ -395,10 +485,55 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         Username = _usernameBeforeEdit;
         IsEditingUsername = false;
-        if (string.IsNullOrWhiteSpace(Username))
+        if (!IsAccountVerified)
         {
-            SyncStatusText = "Click @configure-user to set username";
+            if (string.IsNullOrWhiteSpace(Username))
+            {
+                State = WidgetState.Unconfigured;
+                SyncStatusText = "Click @configure-user to start";
+            }
+            else
+            {
+                State = WidgetState.VerificationRequired;
+                SyncStatusText = "Account verification required";
+            }
         }
+    }
+
+    public void SetVerifiedForTesting(string username, DateTime? verifiedAt = null, LeetCodeUserStats? stats = null)
+    {
+        var sanitized = WidgetConfig.SanitizeUsername(username);
+        _username = sanitized;
+        _usernameBeforeEdit = sanitized;
+        _verifiedUsername = sanitized;
+        _verifiedAt = verifiedAt ?? DateTime.UtcNow;
+        if (stats != null)
+        {
+            _lastSuccessfulStats = stats;
+            PopulateActiveYears(stats.ActiveYears);
+            _streaks = StreakCalculationService.CalculateStreaks(stats.SubmissionCounts, ReferenceDate);
+        }
+        else if (_lastSuccessfulStats == null)
+        {
+            _lastSuccessfulStats = new LeetCodeUserStats
+            {
+                Username = sanitized,
+                ActiveYears = new List<int> { SelectedYear },
+                LastSyncedAt = DateTime.UtcNow
+            };
+            PopulateActiveYears(_lastSuccessfulStats.ActiveYears);
+        }
+        UpdateActivityForSelectedYear();
+        NotifyStatsChanged();
+        State = WidgetState.Ready;
+        OnPropertyChanged(nameof(Username));
+        OnPropertyChanged(nameof(DisplayUsername));
+        OnPropertyChanged(nameof(VerifiedUsername));
+        OnPropertyChanged(nameof(VerifiedAt));
+        OnPropertyChanged(nameof(IsAccountVerified));
+        OnPropertyChanged(nameof(VerificationBadgeTooltip));
+        OnPropertyChanged(nameof(CanDisplayActivity));
+        OnPropertyChanged(nameof(HasValidActivityForCurrentAccount));
     }
 
     public async Task InitializeAsync()
@@ -414,7 +549,9 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             OnPropertyChanged(nameof(DisplayUsername));
         }
 
-        if (!string.IsNullOrWhiteSpace(config.VerifiedUsername))
+        if (!string.IsNullOrWhiteSpace(config.VerifiedUsername) &&
+            !string.IsNullOrWhiteSpace(config.Username) &&
+            string.Equals(config.Username, config.VerifiedUsername, StringComparison.OrdinalIgnoreCase))
         {
             _verifiedUsername = config.VerifiedUsername;
             _verifiedAt = config.VerifiedAt;
@@ -426,7 +563,13 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
         else
         {
-            SyncLogger.Log(2, "Verified username loaded", "No verified username configured");
+            _verifiedUsername = "";
+            _verifiedAt = null;
+            OnPropertyChanged(nameof(VerifiedUsername));
+            OnPropertyChanged(nameof(VerifiedAt));
+            OnPropertyChanged(nameof(IsAccountVerified));
+            OnPropertyChanged(nameof(VerificationBadgeTooltip));
+            SyncLogger.Log(2, "Verified username loaded", "No verified username configured or username mismatch");
         }
 
         if (config.SelectedYear > 2000)
@@ -437,40 +580,68 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
         _refreshCoordinator.Interval = TimeSpan.FromMinutes(config.RefreshIntervalMinutes);
 
-        // 2. Load cached activity immediately
-        if (!string.IsNullOrWhiteSpace(_username))
+        // 2. Load cached activity immediately ONLY IF verified
+        if (IsAccountVerified && !string.IsNullOrWhiteSpace(VerifiedUsername))
         {
-            var cached = await _cacheService.LoadCacheAsync(_username).ConfigureAwait(false);
+            var cached = await _cacheService.LoadCacheAsync(VerifiedUsername).ConfigureAwait(false);
             if (cached != null)
             {
-                _lastSuccessfulStats = cached.ToUserStats();
-                PopulateActiveYears(_lastSuccessfulStats.ActiveYears);
-                _streaks = StreakCalculationService.CalculateStreaks(
-                    _lastSuccessfulStats.SubmissionCounts,
-                    ReferenceDate);
+                var cleanCachedUser = WidgetConfig.SanitizeUsername(cached.Username);
+                var cleanVerifiedUser = WidgetConfig.SanitizeUsername(VerifiedUsername);
 
-                UpdateActivityForSelectedYear();
-                NotifyStatsChanged();
+                if (string.Equals(cleanCachedUser, cleanVerifiedUser, StringComparison.OrdinalIgnoreCase))
+                {
+                    _lastSuccessfulStats = cached.ToUserStats();
+                    PopulateActiveYears(_lastSuccessfulStats.ActiveYears);
+                    _streaks = StreakCalculationService.CalculateStreaks(
+                        _lastSuccessfulStats.SubmissionCounts,
+                        ReferenceDate);
 
-                SyncStatusText = FreshnessFormatter.FormatSyncStatus(
-                    _lastSuccessfulStats.LastSyncedAt,
-                    isOffline: false,
-                    referenceTime: ReferenceDateTime);
+                    UpdateActivityForSelectedYear();
+                    NotifyStatsChanged();
 
-                SyncLogger.Log(3, "Cached activity restored",
-                    $"Solved: {_lastSuccessfulStats.TotalSolved}, Submissions: {_lastSuccessfulStats.SubmissionCounts.Count} dates, LastSyncedAt: {_lastSuccessfulStats.LastSyncedAt:u}");
+                    string freshness = FreshnessFormatter.FormatSyncStatus(
+                        _lastSuccessfulStats.LastSyncedAt,
+                        isOffline: false,
+                        referenceTime: ReferenceDateTime);
+                    SyncStatusText = IsAccountVerified ? $"Verified · {freshness}" : freshness;
+
+                    State = WidgetState.Ready;
+
+                    SyncLogger.Log(3, "Cached activity restored",
+                        $"Solved: {_lastSuccessfulStats.TotalSolved}, Submissions: {_lastSuccessfulStats.SubmissionCounts.Count} dates, LastSyncedAt: {_lastSuccessfulStats.LastSyncedAt:u}");
+                }
             }
             else
             {
-                SyncStatusText = "Configured · syncing...";
+                SyncStatusText = "Verified · syncing...";
+                State = WidgetState.VerifiedSyncing;
                 SyncLogger.Log(3, "Cached activity restored", "No cached activity found");
             }
         }
         else
         {
-            SyncStatusText = "Configure username to start";
-            IsEditingUsername = true;
-            SyncLogger.Log(3, "Cached activity restored", "Skipped - no username configured");
+            // Unverified accounts MUST NEVER load or expose cache
+            _lastSuccessfulStats = null;
+            _currentActivity = null;
+            _currentYearStats = YearlyStatistics.Empty(SelectedYear);
+            _streaks = StreakInfo.Empty;
+            AvailableYears.Clear();
+            NotifyStatsChanged();
+
+            if (string.IsNullOrWhiteSpace(Username))
+            {
+                State = WidgetState.Unconfigured;
+                SyncStatusText = "Configure username to start";
+                IsEditingUsername = true;
+            }
+            else
+            {
+                State = WidgetState.VerificationRequired;
+                SyncStatusText = "Account verification required";
+            }
+
+            SyncLogger.Log(3, "Cached activity restored", "Skipped - unverified account");
         }
 
         if (!_refreshCoordinator.IsRunning)
@@ -478,45 +649,45 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             _refreshCoordinator.Start(PerformSyncAsync);
         }
 
-        if (!string.IsNullOrWhiteSpace(_username))
+        if (IsAccountVerified && !string.IsNullOrWhiteSpace(Username))
         {
             _ = _refreshCoordinator.TriggerRefreshAsync(isManual: false);
         }
     }
 
-    private void PopulateDefaultYears()
+    public void PopulateActiveYears(IReadOnlyList<int>? activeYears)
     {
-        int current = DateTime.Now.Year;
-        AvailableYears.Clear();
-        for (int y = current; y >= current - 4; y--)
-        {
-            AvailableYears.Add(y);
-        }
-    }
-
-    private void PopulateActiveYears(IReadOnlyList<int>? years)
-    {
-        if (years == null || years.Count == 0) return;
-
         Action action = () =>
         {
-            int curYear = SelectedYear;
-            var distinctYears = new HashSet<int>(years) { curYear, DateTime.Now.Year };
-            foreach (var y in AvailableYears)
+            if (activeYears == null || activeYears.Count == 0)
             {
-                distinctYears.Add(y);
-            }
-
-            var sortedYears = distinctYears.OrderByDescending(x => x).ToList();
-            if (AvailableYears.SequenceEqual(sortedYears))
-            {
+                AvailableYears.Clear();
+                OnPropertyChanged(nameof(HasAvailableYears));
                 return;
             }
 
-            AvailableYears.Clear();
-            foreach (var y in sortedYears)
+            // Strictly use the account's actual activeYears, sorted descending.
+            // Do not invent missing years or default ranges.
+            var sortedYears = activeYears
+                .Distinct()
+                .OrderByDescending(x => x)
+                .ToList();
+
+            if (!AvailableYears.SequenceEqual(sortedYears))
             {
-                AvailableYears.Add(y);
+                AvailableYears.Clear();
+                foreach (var y in sortedYears)
+                {
+                    AvailableYears.Add(y);
+                }
+            }
+
+            OnPropertyChanged(nameof(HasAvailableYears));
+
+            // Ensure SelectedYear is one of AvailableYears
+            if (sortedYears.Count > 0 && !sortedYears.Contains(SelectedYear))
+            {
+                SelectedYear = sortedYears[0];
             }
         };
 
@@ -546,15 +717,18 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         if (_isDisposed) return;
 
-        if (string.IsNullOrWhiteSpace(Username))
+        // Invariant: sync is only allowed for verified accounts
+        if (!IsAccountVerified || string.IsNullOrWhiteSpace(VerifiedUsername) || !string.Equals(Username, VerifiedUsername, StringComparison.OrdinalIgnoreCase))
         {
-            SyncStatusText = "Configure a username to fetch data";
+            SyncStatusText = "Account verification required";
+            State = string.IsNullOrWhiteSpace(Username) ? WidgetState.Unconfigured : WidgetState.VerificationRequired;
             return;
         }
 
         SyncLogger.Log(4, "Refresh requested", $"Username: {Username}, Year: {SelectedYear}");
 
         IsSyncing = true;
+        State = WidgetState.VerifiedSyncing;
         SyncStatusText = "Syncing with LeetCode...";
 
         try
@@ -563,26 +737,37 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
             if (_isDisposed) return;
 
+            // Double check account was not switched while request was in flight
+            if (!IsAccountVerified || !string.Equals(Username, VerifiedUsername, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             if (result.IsSuccess && result.Data != null)
             {
                 var data = result.Data;
 
+                // Ensure data belongs to current verified user
+                if (!string.Equals(data.Username, VerifiedUsername, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
                 // Independent calendar vs solved statistics handling
-                var mergedSubmissions = new Dictionary<DateOnly, int>(_lastSuccessfulStats?.SubmissionCounts ?? new Dictionary<DateOnly, int>());
+                var mergedSubmissions = new Dictionary<DateOnly, int>(
+                    HasValidActivityForCurrentAccount ? (_lastSuccessfulStats?.SubmissionCounts ?? new Dictionary<DateOnly, int>()) : new Dictionary<DateOnly, int>());
 
                 if (data.HasCalendarData)
                 {
-                    // Merge new year's submissions into cumulative submissions
                     foreach (var (date, count) in data.SubmissionCounts)
                     {
                         mergedSubmissions[date] = count;
                     }
                 }
 
-                // If active years were returned, preserve or update them
                 var activeYears = (data.ActiveYears != null && data.ActiveYears.Count > 0)
                     ? data.ActiveYears
-                    : (_lastSuccessfulStats?.ActiveYears ?? Array.Empty<int>());
+                    : (HasValidActivityForCurrentAccount ? (_lastSuccessfulStats?.ActiveYears ?? Array.Empty<int>()) : Array.Empty<int>());
 
                 _lastSuccessfulStats = new LeetCodeUserStats
                 {
@@ -591,8 +776,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                     EasySolved = data.EasySolved,
                     MediumSolved = data.MediumSolved,
                     HardSolved = data.HardSolved,
-                    CurrentStreak = data.CurrentStreak > 0 ? data.CurrentStreak : (_lastSuccessfulStats?.CurrentStreak ?? 0),
-                    TotalActiveDays = data.TotalActiveDays > 0 ? data.TotalActiveDays : (_lastSuccessfulStats?.TotalActiveDays ?? 0),
+                    CurrentStreak = data.CurrentStreak > 0 ? data.CurrentStreak : (HasValidActivityForCurrentAccount ? (_lastSuccessfulStats?.CurrentStreak ?? 0) : 0),
+                    TotalActiveDays = data.TotalActiveDays > 0 ? data.TotalActiveDays : (HasValidActivityForCurrentAccount ? (_lastSuccessfulStats?.TotalActiveDays ?? 0) : 0),
                     ActiveYears = activeYears,
                     SubmissionCounts = mergedSubmissions,
                     LastSyncedAt = data.LastSyncedAt ?? DateTime.Now,
@@ -612,55 +797,64 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 UpdateActivityForSelectedYear();
                 NotifyStatsChanged();
 
+                State = WidgetState.Ready;
+
                 SyncLogger.Log(15, "MainViewModel updated",
                     $"Year: {SelectedYear}, Solved: {TotalSolved}, YearSubmissions: {YearSubmissions}, YearActiveDays: {YearActiveDays}");
 
                 if (!data.HasCalendarData)
                 {
-                    SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                    string freshness = FreshnessFormatter.FormatSyncStatus(
                         _lastSuccessfulStats.LastSyncedAt,
                         isOffline: false,
                         failureReason: data.CalendarErrorMessage ?? "Calendar data unavailable",
                         referenceTime: ReferenceDateTime);
+                    SyncStatusText = IsAccountVerified ? $"Verified · {freshness}" : freshness;
                 }
                 else
                 {
-                    SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                    string freshness = FreshnessFormatter.FormatSyncStatus(
                         _lastSuccessfulStats.LastSyncedAt,
                         isOffline: false,
                         referenceTime: ReferenceDateTime);
+                    SyncStatusText = IsAccountVerified ? $"Verified · {freshness}" : freshness;
                 }
 
                 SyncLogger.Log(17, "Refresh completed", $"Status: {SyncStatusText}");
             }
             else
             {
-                // Failed sync: preserve previously cached data and indicate offline/stale status
+                // Failed sync: only preserve cache if it genuinely belongs to the current verified user
                 string err = result.ErrorMessage ?? "Synchronization failed.";
-                bool hasCache = _lastSuccessfulStats != null;
-
-                SyncStatusText = FreshnessFormatter.FormatSyncStatus(
-                    _lastSuccessfulStats?.LastSyncedAt,
-                    isOffline: true,
-                    failureReason: err,
-                    referenceTime: ReferenceDateTime);
+                bool hasCache = HasValidActivityForCurrentAccount;
 
                 if (!hasCache)
                 {
-                    // Clear to empty calendar if no cache exists
-                    CurrentActivity = YearlyActivity.Create(SelectedYear, null);
+                    _lastSuccessfulStats = null;
+                    _currentActivity = null;
                     _currentYearStats = YearlyStatistics.Empty(SelectedYear);
                     _streaks = StreakInfo.Empty;
+                    AvailableYears.Clear();
                     NotifyStatsChanged();
                 }
+
+                State = hasCache ? WidgetState.Offline : WidgetState.Ready;
+
+                SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                    hasCache ? _lastSuccessfulStats?.LastSyncedAt : null,
+                    isOffline: true,
+                    failureReason: err,
+                    referenceTime: ReferenceDateTime);
 
                 SyncLogger.Log(17, "Refresh completed", $"Status: {SyncStatusText}");
             }
         }
         catch (OperationCanceledException)
         {
+            bool hasCache = HasValidActivityForCurrentAccount;
+            State = hasCache ? WidgetState.Offline : WidgetState.Ready;
             SyncStatusText = FreshnessFormatter.FormatSyncStatus(
-                _lastSuccessfulStats?.LastSyncedAt,
+                hasCache ? _lastSuccessfulStats?.LastSyncedAt : null,
                 isOffline: true,
                 failureReason: "Request timed out",
                 referenceTime: ReferenceDateTime);
@@ -668,8 +862,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
         catch (Exception ex)
         {
+            bool hasCache = HasValidActivityForCurrentAccount;
+            State = hasCache ? WidgetState.Offline : WidgetState.Ready;
             SyncStatusText = FreshnessFormatter.FormatSyncStatus(
-                _lastSuccessfulStats?.LastSyncedAt,
+                hasCache ? _lastSuccessfulStats?.LastSyncedAt : null,
                 isOffline: true,
                 failureReason: ex.Message,
                 referenceTime: ReferenceDateTime);
@@ -682,45 +878,59 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private async Task SaveUsernameAndRefreshAsync()
+    public async Task SaveUsernameAndRefreshAsync()
     {
         IsEditingUsername = false;
         var sanitized = WidgetConfig.SanitizeUsername(Username);
+        string oldUsername = _usernameBeforeEdit;
         Username = sanitized;
 
         if (string.IsNullOrWhiteSpace(sanitized))
         {
             SyncStatusText = "Please enter a valid username";
+            State = WidgetState.Unconfigured;
             return;
         }
 
-        await SaveConfigAsync().ConfigureAwait(false);
+        bool isAccountSwitched = !string.Equals(oldUsername, sanitized, StringComparison.OrdinalIgnoreCase);
 
-        // Check if there is cache for this new username
-        var cached = await _cacheService.LoadCacheAsync(sanitized).ConfigureAwait(false);
-        if (cached != null)
+        if (isAccountSwitched)
         {
-            _lastSuccessfulStats = cached.ToUserStats();
-            PopulateActiveYears(_lastSuccessfulStats.ActiveYears);
-            _streaks = StreakCalculationService.CalculateStreaks(_lastSuccessfulStats.SubmissionCounts, ReferenceDate);
+            // HARD ACCOUNT ISOLATION:
+            // 1. Invalidate old account verification
+            VerifiedUsername = "";
+            VerifiedAt = null;
+
+            // 2. Clear all in-memory stats, activity, and years from old account
+            _lastSuccessfulStats = null;
+            _currentActivity = null;
+            _currentYearStats = YearlyStatistics.Empty(SelectedYear);
+            _streaks = StreakInfo.Empty;
+            AvailableYears.Clear();
+
             UpdateActivityForSelectedYear();
             NotifyStatsChanged();
-            SyncStatusText = FreshnessFormatter.FormatSyncStatus(
-                _lastSuccessfulStats.LastSyncedAt,
-                isOffline: false,
-                referenceTime: ReferenceDateTime);
+
+            // 3. Persist unverified state to configuration
+            await SaveConfigAsync().ConfigureAwait(false);
+
+            // 4. Transition to VerificationRequired
+            State = WidgetState.VerificationRequired;
+            SyncStatusText = "Account verification required";
+
+            // 5. Automatically open verification challenge for the new account
+            StartVerificationCommand.Execute(null);
+            return;
+        }
+
+        if (IsAccountVerified)
+        {
+            await RequestManualRefreshAsync().ConfigureAwait(false);
         }
         else
         {
-            _lastSuccessfulStats = null;
-            CurrentActivity = YearlyActivity.Create(SelectedYear, null);
-            _currentYearStats = YearlyStatistics.Empty(SelectedYear);
-            _streaks = StreakInfo.Empty;
-            NotifyStatsChanged();
-            SyncStatusText = "Username updated · syncing...";
+            StartVerificationCommand.Execute(null);
         }
-
-        await RequestManualRefreshAsync().ConfigureAwait(false);
     }
 
     private async Task SaveConfigAsync()
@@ -744,6 +954,13 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     public void UpdateActivityForSelectedYear()
     {
+        if (!HasValidActivityForCurrentAccount)
+        {
+            CurrentActivity = null;
+            _currentYearStats = YearlyStatistics.Empty(SelectedYear);
+            return;
+        }
+
         var submissionMap = _lastSuccessfulStats?.SubmissionCounts;
         CurrentActivity = YearlyActivity.Create(SelectedYear, submissionMap);
 
@@ -773,6 +990,19 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         OnPropertyChanged(nameof(HasSolvedStats));
         OnPropertyChanged(nameof(CurrentStreak));
         OnPropertyChanged(nameof(LongestStreak));
+        OnPropertyChanged(nameof(YearSubmissions));
+        OnPropertyChanged(nameof(YearActiveDays));
+        OnPropertyChanged(nameof(YearAverageText));
+        OnPropertyChanged(nameof(MostActiveDayText));
+        OnPropertyChanged(nameof(YearLongestStreak));
+        OnPropertyChanged(nameof(CurrentActivity));
+        OnPropertyChanged(nameof(TotalSubmissions));
+        OnPropertyChanged(nameof(ActiveDays));
+        OnPropertyChanged(nameof(SummaryStatsText));
+        OnPropertyChanged(nameof(CanDisplayActivity));
+        OnPropertyChanged(nameof(HasValidActivityForCurrentAccount));
+        OnPropertyChanged(nameof(ActivityDataUsername));
+        OnPropertyChanged(nameof(HasAvailableYears));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
