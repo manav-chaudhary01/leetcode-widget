@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using LeetCodeDesktopWidget.Helpers;
 using LeetCodeDesktopWidget.Models;
 
 namespace LeetCodeDesktopWidget.Services;
@@ -97,12 +100,18 @@ query getUserProfile($username: String!, $year: Int) {
         string jsonPayload = JsonSerializer.Serialize(requestPayload);
         using var requestContent = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
+        SyncLogger.Log(6, "HTTP request started", $"Endpoint: {LeetCodeGraphQLEndpoint}, User: {username}, Year: {year}");
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             using var response = await _httpClient.PostAsync(
                 LeetCodeGraphQLEndpoint,
                 requestContent,
                 cancellationToken).ConfigureAwait(false);
+
+            stopwatch.Stop();
+            SyncLogger.Log(7, "HTTP response received", $"StatusCode: {(int)response.StatusCode} ({response.ReasonPhrase}), Elapsed: {stopwatch.ElapsedMilliseconds}ms");
 
             if ((int)response.StatusCode == 429)
             {
@@ -130,20 +139,33 @@ query getUserProfile($username: String!, $year: Int) {
                     LeetCodeErrorCode.InvalidResponse);
             }
 
+            // Stage 8: GraphQL errors, if any
+            if (result.Errors != null && result.Errors.Count > 0)
+            {
+                string errs = string.Join("; ", result.Errors.Select(e => e.Message));
+                SyncLogger.Log(8, "GraphQL errors, if any", errs);
+            }
+            else
+            {
+                SyncLogger.Log(8, "GraphQL errors, if any", "None");
+            }
+
             if (result.Data?.MatchedUser == null)
             {
                 string errMsg = (result.Errors != null && result.Errors.Count > 0)
-                    ? result.Errors[0].Message
+                    ? string.Join("; ", result.Errors.Select(e => e.Message))
                     : $"LeetCode user '{username}' was not found.";
 
                 return LeetCodeResult<LeetCodeUserStats>.Failure(errMsg, LeetCodeErrorCode.UserNotFound);
             }
 
             var matched = result.Data.MatchedUser;
+            SyncLogger.Log(9, "matchedUser successfully parsed", $"Username: {matched.Username}");
+
             var calendar = matched.UserCalendar;
             var submitStats = matched.SubmitStatsGlobal;
 
-            // Extract solved counts
+            // Stage 10: All-time solved statistics parsed
             int total = 0, easy = 0, medium = 0, hard = 0;
             if (submitStats?.AcSubmissionNum != null)
             {
@@ -166,9 +188,37 @@ query getUserProfile($username: String!, $year: Int) {
                     }
                 }
             }
+            SyncLogger.Log(10, "All-time solved statistics parsed", $"Total: {total}, Easy: {easy}, Medium: {medium}, Hard: {hard}");
 
-            // Parse submission calendar
-            var dailyCounts = ParseSubmissionCalendar(calendar?.SubmissionCalendar);
+            // Stage 11: Year-specific calendar parsed
+            bool hasCalendar = true;
+            string? calendarError = null;
+            IReadOnlyDictionary<DateOnly, int> dailyCounts = new Dictionary<DateOnly, int>();
+
+            if (calendar == null)
+            {
+                hasCalendar = false;
+                calendarError = (result.Errors != null && result.Errors.Count > 0)
+                    ? string.Join("; ", result.Errors.Select(e => e.Message))
+                    : "No calendar data returned by LeetCode for the specified year.";
+                SyncLogger.Log(11, "Year-specific calendar parsed", $"Calendar is null: {calendarError}");
+            }
+            else
+            {
+                SyncLogger.Log(11, "Year-specific calendar parsed",
+                    $"ActiveYears: [{string.Join(", ", calendar.ActiveYears ?? new List<int>())}], Streak: {calendar.Streak}, ActiveDays: {calendar.TotalActiveDays}, CalendarLength: {calendar.SubmissionCalendar?.Length ?? 0}");
+
+                var (counts, parseSuccess, error) = ParseSubmissionCalendarSafe(calendar.SubmissionCalendar);
+                if (!parseSuccess)
+                {
+                    hasCalendar = false;
+                    calendarError = error;
+                }
+                else
+                {
+                    dailyCounts = counts;
+                }
+            }
 
             var stats = new LeetCodeUserStats
             {
@@ -181,19 +231,25 @@ query getUserProfile($username: String!, $year: Int) {
                 TotalActiveDays = calendar?.TotalActiveDays ?? 0,
                 ActiveYears = calendar?.ActiveYears?.AsReadOnly() ?? (IReadOnlyList<int>)Array.Empty<int>(),
                 SubmissionCounts = dailyCounts,
-                LastSyncedAt = DateTime.Now
+                LastSyncedAt = DateTime.Now,
+                HasCalendarData = hasCalendar,
+                CalendarErrorMessage = calendarError
             };
 
             return LeetCodeResult<LeetCodeUserStats>.Success(stats);
         }
         catch (HttpRequestException ex)
         {
+            stopwatch.Stop();
+            SyncLogger.Log(7, "HTTP request failed", $"Exception: {ex.Message}, Elapsed: {stopwatch.ElapsedMilliseconds}ms");
             return LeetCodeResult<LeetCodeUserStats>.Failure(
                 $"Network connection error: {ex.Message}",
                 LeetCodeErrorCode.NetworkError);
         }
         catch (TaskCanceledException)
         {
+            stopwatch.Stop();
+            SyncLogger.Log(7, "HTTP request timed out/cancelled", $"Elapsed: {stopwatch.ElapsedMilliseconds}ms");
             return LeetCodeResult<LeetCodeUserStats>.Failure(
                 "Request timed out while connecting to LeetCode.",
                 LeetCodeErrorCode.NetworkError);
@@ -309,21 +365,26 @@ query getUserProfile($username: String!, $year: Int) {
     }
 
     /// <summary>
-    /// Parses LeetCode's submissionCalendar JSON string ("{ \"1719100800\": 3, ... }")
-    /// into a dictionary mapping calendar dates to submission counts.
+    /// Safely parses LeetCode's submissionCalendar JSON string ("{ \"1719100800\": 3, ... }")
+    /// into a dictionary mapping calendar dates to submission counts, logging stages 12 and 13.
     /// </summary>
-    public IReadOnlyDictionary<DateOnly, int> ParseSubmissionCalendar(string? calendarJson)
+    public (IReadOnlyDictionary<DateOnly, int> Counts, bool Success, string? Error) ParseSubmissionCalendarSafe(string? calendarJson)
     {
         var result = new Dictionary<DateOnly, int>();
 
         if (string.IsNullOrWhiteSpace(calendarJson) || calendarJson.Trim() == "{}" || calendarJson.Trim() == "null")
         {
-            return result;
+            SyncLogger.Log(12, "Submission calendar JSON decoded", "Empty calendar ({})");
+            SyncLogger.Log(13, "Daily submissions converted to dates and aggregated", "0 dates, 0 submissions");
+            return (result, true, null);
         }
 
         try
         {
+            SyncLogger.Log(12, "Submission calendar JSON decoded", $"Payload length: {calendarJson.Length}");
             using var doc = JsonDocument.Parse(calendarJson);
+            int totalSubmissions = 0;
+
             foreach (var prop in doc.RootElement.EnumerateObject())
             {
                 if (long.TryParse(prop.Name, out long epochSeconds))
@@ -343,15 +404,34 @@ query getUserProfile($username: String!, $year: Int) {
                         var utcDate = DateTimeOffset.FromUnixTimeSeconds(epochSeconds).UtcDateTime.Date;
                         var dateOnly = DateOnly.FromDateTime(utcDate);
                         result[dateOnly] = result.GetValueOrDefault(dateOnly) + count;
+                        totalSubmissions += count;
                     }
                 }
             }
-        }
-        catch
-        {
-            // Fallback gracefully on malformed JSON
-        }
 
-        return result;
+            SyncLogger.Log(13, "Daily submissions converted to dates and aggregated",
+                $"Dates: {result.Count}, TotalSubmissions: {totalSubmissions}");
+
+            return (result, true, null);
+        }
+        catch (JsonException ex)
+        {
+            SyncLogger.Log(12, "Submission calendar JSON decoded", $"Failed: {ex.Message}");
+            return (result, false, $"Malformed submission calendar JSON: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            SyncLogger.Log(12, "Submission calendar JSON decoded", $"Failed: {ex.Message}");
+            return (result, false, $"Unexpected calendar parse error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Parses LeetCode's submissionCalendar JSON string ("{ \"1719100800\": 3, ... }")
+    /// into a dictionary mapping calendar dates to submission counts.
+    /// </summary>
+    public IReadOnlyDictionary<DateOnly, int> ParseSubmissionCalendar(string? calendarJson)
+    {
+        return ParseSubmissionCalendarSafe(calendarJson).Counts;
     }
 }

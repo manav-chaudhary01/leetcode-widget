@@ -13,6 +13,7 @@ public class BooleanToVisibilityConverter : IValueConverter
     {
         bool isTrue = value is bool b && b;
         if (Invert) isTrue = !isTrue;
+        if (targetType == typeof(bool)) return isTrue;
         return isTrue ? Visibility.Visible : Visibility.Collapsed;
     }
 

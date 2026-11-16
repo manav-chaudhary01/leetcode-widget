@@ -186,6 +186,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 OnPropertyChanged();
                 UpdateActivityForSelectedYear();
                 _ = SaveConfigAsync();
+                _ = RequestManualRefreshAsync();
             }
         }
     }
@@ -404,6 +405,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         // 1. Load persisted configuration
         var config = await _configService.LoadConfigurationAsync().ConfigureAwait(false);
+        SyncLogger.Log(1, "Configuration loaded", $"Username: {config.Username}, SelectedYear: {config.SelectedYear}, Interval: {config.RefreshIntervalMinutes}m");
+
         if (string.IsNullOrWhiteSpace(_username) && !string.IsNullOrWhiteSpace(config.Username))
         {
             _username = config.Username;
@@ -419,6 +422,11 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             OnPropertyChanged(nameof(VerifiedAt));
             OnPropertyChanged(nameof(IsAccountVerified));
             OnPropertyChanged(nameof(VerificationBadgeTooltip));
+            SyncLogger.Log(2, "Verified username loaded", $"VerifiedUsername: {_verifiedUsername}, VerifiedAt: {_verifiedAt:u}");
+        }
+        else
+        {
+            SyncLogger.Log(2, "Verified username loaded", "No verified username configured");
         }
 
         if (config.SelectedYear > 2000)
@@ -448,16 +456,21 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                     _lastSuccessfulStats.LastSyncedAt,
                     isOffline: false,
                     referenceTime: ReferenceDateTime);
+
+                SyncLogger.Log(3, "Cached activity restored",
+                    $"Solved: {_lastSuccessfulStats.TotalSolved}, Submissions: {_lastSuccessfulStats.SubmissionCounts.Count} dates, LastSyncedAt: {_lastSuccessfulStats.LastSyncedAt:u}");
             }
             else
             {
                 SyncStatusText = "Configured · syncing...";
+                SyncLogger.Log(3, "Cached activity restored", "No cached activity found");
             }
         }
         else
         {
             SyncStatusText = "Configure username to start";
             IsEditingUsername = true;
+            SyncLogger.Log(3, "Cached activity restored", "Skipped - no username configured");
         }
 
         if (!_refreshCoordinator.IsRunning)
@@ -485,15 +498,36 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         if (years == null || years.Count == 0) return;
 
-        int curYear = SelectedYear;
-        AvailableYears.Clear();
-        foreach (var y in years.OrderByDescending(x => x))
+        Action action = () =>
         {
-            AvailableYears.Add(y);
+            int curYear = SelectedYear;
+            var distinctYears = new HashSet<int>(years) { curYear, DateTime.Now.Year };
+            foreach (var y in AvailableYears)
+            {
+                distinctYears.Add(y);
+            }
+
+            var sortedYears = distinctYears.OrderByDescending(x => x).ToList();
+            if (AvailableYears.SequenceEqual(sortedYears))
+            {
+                return;
+            }
+
+            AvailableYears.Clear();
+            foreach (var y in sortedYears)
+            {
+                AvailableYears.Add(y);
+            }
+        };
+
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher != null && !dispatcher.HasShutdownStarted && !dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(action);
         }
-        if (!AvailableYears.Contains(curYear))
+        else if (dispatcher == null || !dispatcher.HasShutdownStarted)
         {
-            AvailableYears.Insert(0, curYear);
+            action();
         }
     }
 
@@ -518,55 +552,133 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             return;
         }
 
+        SyncLogger.Log(4, "Refresh requested", $"Username: {Username}, Year: {SelectedYear}");
+
         IsSyncing = true;
         SyncStatusText = "Syncing with LeetCode...";
 
-        var result = await _leetCodeService.GetUserActivityAsync(Username, SelectedYear, cancellationToken).ConfigureAwait(false);
-
-        if (_isDisposed) return;
-        IsSyncing = false;
-
-        if (result.IsSuccess && result.Data != null)
+        try
         {
-            _lastSuccessfulStats = result.Data;
+            var result = await _leetCodeService.GetUserActivityAsync(Username, SelectedYear, cancellationToken).ConfigureAwait(false);
 
-            // Persist to local cache atomically
-            await _cacheService.SaveCacheAsync(result.Data).ConfigureAwait(false);
+            if (_isDisposed) return;
 
-            PopulateActiveYears(result.Data.ActiveYears);
+            if (result.IsSuccess && result.Data != null)
+            {
+                var data = result.Data;
 
-            _streaks = StreakCalculationService.CalculateStreaks(
-                result.Data.SubmissionCounts,
-                ReferenceDate);
+                // Independent calendar vs solved statistics handling
+                var mergedSubmissions = new Dictionary<DateOnly, int>(_lastSuccessfulStats?.SubmissionCounts ?? new Dictionary<DateOnly, int>());
 
-            UpdateActivityForSelectedYear();
-            NotifyStatsChanged();
+                if (data.HasCalendarData)
+                {
+                    // Merge new year's submissions into cumulative submissions
+                    foreach (var (date, count) in data.SubmissionCounts)
+                    {
+                        mergedSubmissions[date] = count;
+                    }
+                }
 
-            SyncStatusText = FreshnessFormatter.FormatSyncStatus(
-                result.Data.LastSyncedAt,
-                isOffline: false,
-                referenceTime: ReferenceDateTime);
+                // If active years were returned, preserve or update them
+                var activeYears = (data.ActiveYears != null && data.ActiveYears.Count > 0)
+                    ? data.ActiveYears
+                    : (_lastSuccessfulStats?.ActiveYears ?? Array.Empty<int>());
+
+                _lastSuccessfulStats = new LeetCodeUserStats
+                {
+                    Username = data.Username,
+                    TotalSolved = data.TotalSolved,
+                    EasySolved = data.EasySolved,
+                    MediumSolved = data.MediumSolved,
+                    HardSolved = data.HardSolved,
+                    CurrentStreak = data.CurrentStreak > 0 ? data.CurrentStreak : (_lastSuccessfulStats?.CurrentStreak ?? 0),
+                    TotalActiveDays = data.TotalActiveDays > 0 ? data.TotalActiveDays : (_lastSuccessfulStats?.TotalActiveDays ?? 0),
+                    ActiveYears = activeYears,
+                    SubmissionCounts = mergedSubmissions,
+                    LastSyncedAt = data.LastSyncedAt ?? DateTime.Now,
+                    HasCalendarData = data.HasCalendarData,
+                    CalendarErrorMessage = data.CalendarErrorMessage
+                };
+
+                // Persist to local cache atomically
+                await _cacheService.SaveCacheAsync(_lastSuccessfulStats).ConfigureAwait(false);
+
+                PopulateActiveYears(activeYears);
+
+                _streaks = StreakCalculationService.CalculateStreaks(
+                    mergedSubmissions,
+                    ReferenceDate);
+
+                UpdateActivityForSelectedYear();
+                NotifyStatsChanged();
+
+                SyncLogger.Log(15, "MainViewModel updated",
+                    $"Year: {SelectedYear}, Solved: {TotalSolved}, YearSubmissions: {YearSubmissions}, YearActiveDays: {YearActiveDays}");
+
+                if (!data.HasCalendarData)
+                {
+                    SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                        _lastSuccessfulStats.LastSyncedAt,
+                        isOffline: false,
+                        failureReason: data.CalendarErrorMessage ?? "Calendar data unavailable",
+                        referenceTime: ReferenceDateTime);
+                }
+                else
+                {
+                    SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                        _lastSuccessfulStats.LastSyncedAt,
+                        isOffline: false,
+                        referenceTime: ReferenceDateTime);
+                }
+
+                SyncLogger.Log(17, "Refresh completed", $"Status: {SyncStatusText}");
+            }
+            else
+            {
+                // Failed sync: preserve previously cached data and indicate offline/stale status
+                string err = result.ErrorMessage ?? "Synchronization failed.";
+                bool hasCache = _lastSuccessfulStats != null;
+
+                SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                    _lastSuccessfulStats?.LastSyncedAt,
+                    isOffline: true,
+                    failureReason: err,
+                    referenceTime: ReferenceDateTime);
+
+                if (!hasCache)
+                {
+                    // Clear to empty calendar if no cache exists
+                    CurrentActivity = YearlyActivity.Create(SelectedYear, null);
+                    _currentYearStats = YearlyStatistics.Empty(SelectedYear);
+                    _streaks = StreakInfo.Empty;
+                    NotifyStatsChanged();
+                }
+
+                SyncLogger.Log(17, "Refresh completed", $"Status: {SyncStatusText}");
+            }
         }
-        else
+        catch (OperationCanceledException)
         {
-            // Failed sync: preserve previously cached data and indicate offline/stale status
-            string err = result.ErrorMessage ?? "Synchronization failed.";
-            bool hasCache = _lastSuccessfulStats != null;
-
             SyncStatusText = FreshnessFormatter.FormatSyncStatus(
                 _lastSuccessfulStats?.LastSyncedAt,
                 isOffline: true,
-                failureReason: err,
+                failureReason: "Request timed out",
                 referenceTime: ReferenceDateTime);
-
-            if (!hasCache)
-            {
-                // Clear to empty calendar if no cache exists
-                CurrentActivity = YearlyActivity.Create(SelectedYear, null);
-                _currentYearStats = YearlyStatistics.Empty(SelectedYear);
-                _streaks = StreakInfo.Empty;
-                NotifyStatsChanged();
-            }
+            SyncLogger.Log(17, "Refresh completed", $"Cancelled: {SyncStatusText}");
+        }
+        catch (Exception ex)
+        {
+            SyncStatusText = FreshnessFormatter.FormatSyncStatus(
+                _lastSuccessfulStats?.LastSyncedAt,
+                isOffline: true,
+                failureReason: ex.Message,
+                referenceTime: ReferenceDateTime);
+            SyncLogger.Log(17, "Refresh completed", $"Exception: {ex.Message}");
+        }
+        finally
+        {
+            IsSyncing = false;
+            SyncLogger.Log(18, "Refresh state and status text reset", $"IsSyncing: {IsSyncing}, Status: {SyncStatusText}");
         }
     }
 
@@ -640,6 +752,9 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             SelectedYear,
             submissionMap,
             ReferenceDate);
+
+        SyncLogger.Log(14, "Selected-year statistics calculated",
+            $"Year: {SelectedYear}, Submissions: {_currentYearStats.TotalSubmissions}, ActiveDays: {_currentYearStats.ActiveDays}, Streak: {_currentYearStats.LongestStreak}");
 
         OnPropertyChanged(nameof(CurrentYearStats));
         OnPropertyChanged(nameof(YearSubmissions));

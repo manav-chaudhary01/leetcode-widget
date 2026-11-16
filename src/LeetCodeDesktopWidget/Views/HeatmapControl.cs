@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using LeetCodeDesktopWidget.Helpers;
 using LeetCodeDesktopWidget.Models;
 
 namespace LeetCodeDesktopWidget.Views;
@@ -79,6 +80,8 @@ public class HeatmapControl : FrameworkElement
         {
             control.RebuildGridMap();
             control.InvalidateVisual();
+            SyncLogger.Log(16, "HeatmapControl notified and invalidated",
+                $"Year: {control.Activity?.Year}, Submissions: {control.Activity?.TotalSubmissions}, ActiveDays: {control.Activity?.ActiveDays}");
         }
     }
 

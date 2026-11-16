@@ -63,6 +63,11 @@ public static class FreshnessFormatter
             return $"Offline · cached {rel}";
         }
 
+        if (!string.IsNullOrWhiteSpace(failureReason))
+        {
+            return $"Synced {rel} · {failureReason}";
+        }
+
         return $"Synced {rel}";
     }
 }

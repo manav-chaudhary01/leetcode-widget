@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Windows;
 using LeetCodeDesktopWidget.Desktop;
+using LeetCodeDesktopWidget.Helpers;
 using LeetCodeDesktopWidget.Services;
 using LeetCodeDesktopWidget.ViewModels;
 
@@ -13,6 +15,18 @@ public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)
     {
+        AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+        {
+            SyncLogger.Log(0, "AppDomain UnhandledException", args.ExceptionObject?.ToString());
+        };
+
+        DispatcherUnhandledException += (s, args) =>
+        {
+            SyncLogger.Log(0, "Dispatcher UnhandledException", args.Exception?.ToString());
+        };
+
+        SyncLogger.Log(0, "App OnStartup started");
+
         // 1. If launched in a secondary or test runner desktop, attach thread
         // to the interactive "Default" desktop where Windows Explorer and Progman reside.
         try
@@ -23,29 +37,38 @@ public partial class App : Application
                 DesktopInterop.SetThreadDesktop(hDesk);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Gracefully continue if desktop switching is restricted
+            SyncLogger.Log(0, "SetThreadDesktop exception", ex.Message);
         }
 
         base.OnStartup(e);
 
-        // 2. Composition root: construct services and authoritative MainViewModel
-        var leetCodeService = new LeetCodeService();
-        var configService = new ConfigurationService();
-        var cacheService = new CacheService();
-        var refreshCoordinator = new RefreshCoordinator();
-        var verificationService = new AccountVerificationService(leetCodeService);
+        try
+        {
+            // 2. Composition root: construct services and authoritative MainViewModel
+            var leetCodeService = new LeetCodeService();
+            var configService = new ConfigurationService();
+            var cacheService = new CacheService();
+            var refreshCoordinator = new RefreshCoordinator();
+            var verificationService = new AccountVerificationService(leetCodeService);
 
-        var viewModel = new MainViewModel(
-            leetCodeService,
-            configService,
-            cacheService,
-            refreshCoordinator,
-            verificationService);
+            var viewModel = new MainViewModel(
+                leetCodeService,
+                configService,
+                cacheService,
+                refreshCoordinator,
+                verificationService);
 
-        var mainWindow = new MainWindow(viewModel);
-        MainWindow = mainWindow;
-        mainWindow.Show();
+            var mainWindow = new MainWindow(viewModel);
+            MainWindow = mainWindow;
+            mainWindow.Show();
+            SyncLogger.Log(0, "MainWindow.Show() called");
+        }
+        catch (Exception ex)
+        {
+            SyncLogger.Log(0, "CompositionRoot or MainWindow.Show failed", ex.ToString());
+            throw;
+        }
     }
 }

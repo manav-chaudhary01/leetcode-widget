@@ -54,6 +54,8 @@ public class LeetCodeUserStats
     public IReadOnlyList<int> ActiveYears { get; init; } = Array.Empty<int>();
     public IReadOnlyDictionary<DateOnly, int> SubmissionCounts { get; init; } = new Dictionary<DateOnly, int>();
     public DateTime? LastSyncedAt { get; init; }
+    public bool HasCalendarData { get; init; } = true;
+    public string? CalendarErrorMessage { get; init; }
 }
 
 #region GraphQL DTOs

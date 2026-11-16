@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using LeetCodeDesktopWidget.Helpers;
 
 namespace LeetCodeDesktopWidget.Services;
 
@@ -81,6 +82,7 @@ public class RefreshCoordinator : IRefreshCoordinator
 
     private async Task<bool> ExecuteRefreshCoreAsync()
     {
+        SyncLogger.Log(5, "Refresh coordinator acquired", "Starting refresh execution");
         try
         {
             CancellationToken token;
