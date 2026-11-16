@@ -22,20 +22,20 @@ public class HeatmapControl : FrameworkElement
     private const double GridOriginY = 20.0;
     private const double CellCornerRadius = 2.0;
 
-    // Pre-allocated, frozen brushes for 5 activity levels
+    // Pre-allocated, frozen brushes for 5 activity levels in refined dark charcoal + green palette
     private static readonly Brush Level0Brush = CreateFrozenBrush(Color.FromRgb(0x16, 0x1B, 0x22));
-    private static readonly Brush Level1Brush = CreateFrozenBrush(Color.FromRgb(0x0E, 0x44, 0x29));
-    private static readonly Brush Level2Brush = CreateFrozenBrush(Color.FromRgb(0x00, 0x6D, 0x32));
-    private static readonly Brush Level3Brush = CreateFrozenBrush(Color.FromRgb(0x26, 0xA6, 0x41));
-    private static readonly Brush Level4Brush = CreateFrozenBrush(Color.FromRgb(0x39, 0xD3, 0x53));
+    private static readonly Brush Level1Brush = CreateFrozenBrush(Color.FromRgb(0x0E, 0x3A, 0x22));
+    private static readonly Brush Level2Brush = CreateFrozenBrush(Color.FromRgb(0x18, 0x63, 0x34));
+    private static readonly Brush Level3Brush = CreateFrozenBrush(Color.FromRgb(0x23, 0x8C, 0x44));
+    private static readonly Brush Level4Brush = CreateFrozenBrush(Color.FromRgb(0x2E, 0xB8, 0x56));
 
-    // Pre-allocated pens
-    private static readonly Pen CellBorderPen = CreateFrozenPen(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF), 0.5);
-    private static readonly Pen HoverPen = CreateFrozenPen(Color.FromRgb(0xE6, 0xED, 0xF3), 1.5);
+    // Pre-allocated pens for cell borders and hover ring
+    private static readonly Pen CellBorderPen = CreateFrozenPen(Color.FromRgb(0x23, 0x27, 0x2E), 0.5);
+    private static readonly Pen HoverPen = CreateFrozenPen(Color.FromRgb(0x58, 0xA6, 0xFF), 1.5);
 
-    // Label brush & font
-    private static readonly Brush LabelBrush = CreateFrozenBrush(Color.FromRgb(0x8B, 0x94, 0x9E));
-    private static readonly Typeface LabelTypeface = new("Segoe UI Variable, Segoe UI, sans-serif");
+    // Label brush & font: quiet, understated typography
+    private static readonly Brush LabelBrush = CreateFrozenBrush(Color.FromRgb(0x63, 0x6E, 0x7B));
+    private static readonly Typeface LabelTypeface = new("Segoe UI Variable Text, Segoe UI, sans-serif");
 
     private readonly Dictionary<(int Col, int Row), DailySubmission> _gridMap = new();
     private (int Col, int Row)? _hoveredCoord;
