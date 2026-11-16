@@ -53,18 +53,42 @@ public partial class MainWindow : Window
     {
         base.OnSourceInitialized(e);
 
-        _desktopManager = new DesktopWindowManager(this);
-        _desktopManager.ExplorerRestarted += OnExplorerRestarted;
-        _desktopManager.DisplayChanged += OnDisplayChanged;
-        _desktopManager.AttachToDesktop();
-
-        UpdateHostStatusBadge();
-
-        if (DataContext is MainViewModel vm)
+        try
         {
-            vm.PropertyChanged += (s, args) =>
+            _desktopManager = new DesktopWindowManager(this);
+            _desktopManager.ExplorerRestarted += OnExplorerRestarted;
+            _desktopManager.DisplayChanged += OnDisplayChanged;
+            _desktopManager.AttachToDesktop();
+
+            UpdateHostStatusBadge();
+
+            if (DataContext is MainViewModel vm)
             {
-                if (args.PropertyName == nameof(MainViewModel.IsEditingUsername) && vm.IsEditingUsername)
+                vm.PropertyChanged += (s, args) =>
+                {
+                    if (args.PropertyName == nameof(MainViewModel.IsEditingUsername) && vm.IsEditingUsername)
+                    {
+                        _ = Dispatcher.InvokeAsync(() =>
+                        {
+                            UsernameInputBox?.Focus();
+                            UsernameInputBox?.SelectAll();
+                        });
+                    }
+                };
+
+                await vm.InitializeAsync();
+
+                RestorePositionFromConfig(vm.WindowX, vm.WindowY);
+
+                if (!vm.IsAccountVerified)
+                {
+                    _ = Dispatcher.InvokeAsync(() =>
+                    {
+                        OnboardingUsernameBox?.Focus();
+                        OnboardingUsernameBox?.SelectAll();
+                    });
+                }
+                else if (vm.IsEditingUsername)
                 {
                     _ = Dispatcher.InvokeAsync(() =>
                     {
@@ -72,31 +96,15 @@ public partial class MainWindow : Window
                         UsernameInputBox?.SelectAll();
                     });
                 }
-            };
-
-            await vm.InitializeAsync();
-
-            RestorePositionFromConfig(vm.WindowX, vm.WindowY);
-
-            if (!vm.IsAccountVerified)
-            {
-                _ = Dispatcher.InvokeAsync(() =>
-                {
-                    OnboardingUsernameBox?.Focus();
-                    OnboardingUsernameBox?.SelectAll();
-                });
             }
-            else if (vm.IsEditingUsername)
+            else
             {
-                _ = Dispatcher.InvokeAsync(() =>
-                {
-                    UsernameInputBox?.Focus();
-                    UsernameInputBox?.SelectAll();
-                });
+                EnsureVisibleOnScreen();
             }
         }
-        else
+        catch (Exception ex)
         {
+            SyncLogger.Log(0, "OnSourceInitialized exception", ex.ToString());
             EnsureVisibleOnScreen();
         }
     }

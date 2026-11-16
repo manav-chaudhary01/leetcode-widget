@@ -9,10 +9,14 @@ Built with C# and WPF on .NET 10, designed to blend naturally into the Windows d
 ## Key Features
 
 - **Wallpaper-Layer Integration**: Resides behind open application windows (browsers, IDEs, terminals) while remaining visible whenever the desktop is exposed (e.g. Win+D or minimized windows).
-- **GitHub/LeetCode Contribution Heatmap**: Complete 53-week calendar grid with 5 contribution intensity levels, leap year support, weekday and month labels, and hover tooltips.
-- **Yearly & All-Time Telemetry**: Solved problems breakdown by difficulty (Easy, Medium, Hard), current and longest streaks derived from submission history, active days, and yearly averages.
-- **Persistent Local Configuration**: Automatically remembers username, selected year, and refresh settings across restarts in `%LOCALAPPDATA%\LeetCodeDesktopWidget\config.json`.
-- **Instant Offline Cache**: Persists activity to `%LOCALAPPDATA%\LeetCodeDesktopWidget\cache.json`, displaying cached data and freshness indicators immediately upon launch without network lag.
+- **Draggable & Persistent Positioning**: Freely reposition the widget anywhere on your desktop via deliberate header drag regions; window coordinates are clamped within the virtual screen and persisted across reboots.
+- **Account Ownership Verification**: Cryptographic challenge-token verification using public LeetCode profile `aboutMe` field; protects personal desktop widgets from unauthorized username spoofing without requiring passwords or cookies.
+- **Strict Account Isolation**: Activity data, streaks, and heatmap grids are strictly gated to the currently verified account; switching accounts immediately resets all metrics.
+- **GitHub/LeetCode Contribution Heatmap**: Full 12-month calendar grid with 5 contribution intensity levels, leap year support, weekday and month labels, and interactive hover tooltips.
+- **Yearly & All-Time Telemetry**: Solved problems breakdown by difficulty (Easy, Medium, Hard), current and longest streaks derived from daily submissions, active days, and yearly averages.
+- **Dynamic Active Years**: Automatically detects and populates active years from the user's LeetCode profile without hardcoded ranges.
+- **Persistent Local Configuration**: Automatically remembers username, verified state, selected year, and window coordinates across restarts in `%LOCALAPPDATA%\LeetCodeDesktopWidget\config.json`.
+- **Instant Per-Account Offline Cache**: Persists activity to `%LOCALAPPDATA%\LeetCodeDesktopWidget\cache_<username>.json`, displaying cached data and freshness indicators immediately upon launch without network lag.
 - **Background Synchronization**: 60-minute automatic periodic background refresh with strict concurrency coalescing (no duplicate requests).
 - **Windows Shell Resilience**: Survives Explorer restarts (`explorer.exe`), display configuration changes, multi-monitor shifts, sleep/wake cycles, and session lock/unlock events.
 - **Privacy First**: Uses LeetCode's public GraphQL endpoint. Requires only a public username; never requests or persists passwords, tokens, or session cookies.
@@ -49,18 +53,26 @@ dotnet run --project src/LeetCodeDesktopWidget -c Release
 
 ## User Guide
 
-### 1. Configuring Your Username
-1. On initial clean launch, the widget automatically opens the username input box and prompts you to enter your LeetCode ID.
-2. Type your public LeetCode username.
-3. Press **Enter** or click the **✓** button to save. (Press **Esc** or click **✕** to cancel).
-4. You can also click the `@configure-user` link in the top-left corner (or the ✎ pencil button) at any time to update your username.
-5. The widget will sanitize the username, persist your choice, and initiate a background sync with LeetCode.
+### 1. Connecting Your Account & Ownership Verification
+1. On initial launch, the widget displays the onboarding surface. Enter your public LeetCode username and click **Verify Ownership**.
+2. A temporary cryptographic challenge token is generated (e.g., `lc-verify-xxxxxxxxxxxx`).
+3. Click **📋 Copy** to copy the token.
+4. Click **↗ Open LeetCode Profile** to open your profile bio settings in your default browser.
+5. Paste the token into your LeetCode profile **About Me** field and click **Save**.
+6. Return to the widget and click **Verify Ownership**.
+7. Once verified, the verification overlay closes, your live activity and heatmap are loaded, and the verified status badge appears. You can safely remove the token from your profile bio.
 
-### 2. Year Selector
-- Use the dropdown in the header to switch between active years. The heatmap and the statistics strip update instantly to reflect the selected calendar year.
+### 2. Moving the Widget & Persistent Position
+- Click and drag anywhere along the top brand region (`● LEETCODE ⋮⋮`) to move the widget.
+- The widget uses a minimum drag distance threshold to prevent accidental clicks from moving the window.
+- The window automatically clamps within the bounds of your multi-monitor virtual screen.
+- Coordinates (`WindowX`, `WindowY`) are automatically saved to `%LOCALAPPDATA%\LeetCodeDesktopWidget\config.json` and restored across restarts.
 
-### 3. Manual Refresh
-- Click the **↻** button to trigger a manual synchronization. If a background sync is already in flight, the manual request coalesces with it to prevent duplicate network calls.
+### 3. Year Selector
+- Use the dropdown in the hero section to switch between your account's active submission years. Active years are queried dynamically from your profile history.
+
+### 4. Manual Refresh
+- Click the **↻** button to manually synchronize with LeetCode. If a sync is already running, subsequent clicks coalesce into the active request without redundant HTTP calls.
 
 ---
 
@@ -72,12 +84,13 @@ The widget interacts with the Windows Shell to anchor itself as an unobtrusive b
 2. **Bottom Z-Order Pinning**: The window is pinned to `HWND_BOTTOM` and intercepts `WM_WINDOWPOSCHANGING` in its subclassed window procedure, ensuring it reliably stays behind open applications (Chrome, VS Code, terminals) and remains visible when the desktop is exposed via Win+D ("Show Desktop").
 3. **No Focus / No Alt+Tab**: Extended window styles `WS_EX_TOOLWINDOW` and `WS_EX_NOACTIVATE` guarantee that the widget never steals input focus or appears in Alt+Tab window switching.
 4. **Shell Reconnection**: Intercepts the registered `TaskbarCreated` Win32 message. If `explorer.exe` restarts, the widget automatically rediscovers the desktop host and re-anchors itself.
-5. **Display & Work Area Clamping**: Listens for `WM_DISPLAYCHANGE`, `WM_SETTINGCHANGE`, and `SystemEvents.DisplaySettingsChanged` to clamp window coordinates safely inside the visible primary monitor work area.
+5. **Multi-Monitor & DPI Clamping**: Listens for `WM_DISPLAYCHANGE`, `WM_SETTINGCHANGE`, and `SystemEvents.DisplaySettingsChanged` to clamp window coordinates safely inside the virtual screen bounds across all active displays.
 
 ### Data Synchronization & Caching
 - **Endpoint**: Communicates via HTTPS with LeetCode's public GraphQL endpoint (`https://leetcode.com/graphql`).
-- **Cache Persistence**: Successful responses are serialized atomically into `%LOCALAPPDATA%\LeetCodeDesktopWidget\cache.json` using temporary file replacement (`.tmp` + `File.Move`).
-- **Offline Mode**: If offline or if LeetCode encounters network errors, the widget retains previously cached submissions and updates the status indicator to `"Offline · cached [time]"`.
+- **Cache Persistence**: Successful responses are serialized atomically into `%LOCALAPPDATA%\LeetCodeDesktopWidget\cache_<username>.json` using temporary file replacement (`.tmp` + `File.Move`).
+- **Account Isolation**: Data and statistics are strictly isolated by verified username. If you switch to another account, cached data from previous accounts is immediately cleared.
+- **Offline Mode**: If offline or if LeetCode encounters network errors, the widget retains previously cached submissions for the current verified account and updates the status indicator to `"Verified · Offline · cached [time]"`.
 - **Concurrency Protection**: The `RefreshCoordinator` uses non-blocking atomic locks to guarantee that duplicate periodic triggers are discarded and concurrent manual triggers coalesce with in-flight HTTP requests.
 
 ---
@@ -94,7 +107,7 @@ The widget interacts with the Windows Shell to anchor itself as an unobtrusive b
 
 - **Unofficial GraphQL Endpoint**: The widget relies on LeetCode's public web GraphQL schema. If LeetCode makes breaking changes to their public schema, an update to the GraphQL query models may be required.
 - **Rate Limiting**: Sending too many rapid manual refresh requests may trigger temporary HTTP 429 rate limiting from LeetCode. The widget handles rate limiting gracefully by displaying a warning and backing off.
-- **Multi-Monitor Targeting**: The widget anchors to the primary desktop display. Moving the widget across arbitrary secondary monitors is not currently automated.
+- **Visual Design Status**: The current UI represents a functional release candidate composition; visual refinements and layout polishing will continue in future updates.
 
 ---
 
@@ -103,8 +116,9 @@ The widget interacts with the Windows Shell to anchor itself as an unobtrusive b
 | Issue | Cause | Solution |
 | :--- | :--- | :--- |
 | **Status shows "User not found"** | Username mistyped or account is private | Verify your username on [leetcode.com](https://leetcode.com). Click ✎ to re-enter. |
+| **Verification fails** | Token missing from LeetCode bio or challenge expired | Ensure the challenge token is saved in your LeetCode profile 'About Me' field and click 'Verify Ownership' within 15 minutes. |
 | **Status shows "Offline · cached ..."** | Internet disconnected or LeetCode unreachable | Check your network connection. Cached data remains displayed. Click ↻ when back online. |
-| **Widget moved after resolution change** | Display resolution reduced | The widget automatically clamps to the work area. If needed, restart the application to reposition. |
+| **Widget moved after resolution change** | Display resolution reduced | The widget automatically clamps to the visible desktop. Drag to reposition if desired. |
 | **Explorer restarted and widget is hidden** | Shell re-initialization lag | The widget catches `TaskbarCreated` and re-attaches automatically within 500ms. |
 
 ---
@@ -125,7 +139,7 @@ leetcode-widget/
 |       |-- MainWindow.xaml
 |
 |-- tests/
-|   |-- LeetCodeDesktopWidget.Tests/ # xUnit test suite (86 automated tests)
+|   |-- LeetCodeDesktopWidget.Tests/ # xUnit test suite (194 automated tests)
 |
 |-- README.md
 |-- LICENSE
