@@ -50,10 +50,11 @@ dotnet run --project src/LeetCodeDesktopWidget -c Release
 ## User Guide
 
 ### 1. Configuring Your Username
-1. On initial launch, click the `@configure-user` link in the top-left corner (or the ✎ pencil button).
+1. On initial clean launch, the widget automatically opens the username input box and prompts you to enter your LeetCode ID.
 2. Type your public LeetCode username.
 3. Press **Enter** or click the **✓** button to save. (Press **Esc** or click **✕** to cancel).
-4. The widget will sanitize the username, persist your choice, and initiate a background sync with LeetCode.
+4. You can also click the `@configure-user` link in the top-left corner (or the ✎ pencil button) at any time to update your username.
+5. The widget will sanitize the username, persist your choice, and initiate a background sync with LeetCode.
 
 ### 2. Year Selector
 - Use the dropdown in the header to switch between active years. The heatmap and the statistics strip update instantly to reflect the selected calendar year.
@@ -67,8 +68,8 @@ dotnet run --project src/LeetCodeDesktopWidget -c Release
 
 ### Desktop Wallpaper Integration
 The widget interacts with the Windows Shell to anchor itself as an unobtrusive background component:
-1. **WorkerW Hosting**: It discovers the Windows desktop wallpaper host window (`WorkerW`, spawned by `Progman` via message `0x052C`) and parents the widget directly behind the desktop icon view (`SHELLDLL_DefView`).
-2. **Bottom-Pinned Fallback**: If running in an environment without WorkerW (e.g. specialized sandbox or secondary desktop station), it switches to a bottom-pinned popup window (`HWND_BOTTOM`) while intercepting `WM_WINDOWPOSCHANGING` to prevent rising above applications.
+1. **Desktop Layer Ownership**: It discovers the Windows desktop host window (`Progman`) and establishes ownership (`GWLP_HWNDPARENT`) while maintaining a top-level `WS_POPUP` window. This preserves native DirectComposition/DWM layered transparency, ensures full mouse interactivity within the widget, and keeps desktop icons outside the widget completely interactive.
+2. **Bottom Z-Order Pinning**: The window is pinned to `HWND_BOTTOM` and intercepts `WM_WINDOWPOSCHANGING` in its subclassed window procedure, ensuring it reliably stays behind open applications (Chrome, VS Code, terminals) and remains visible when the desktop is exposed via Win+D ("Show Desktop").
 3. **No Focus / No Alt+Tab**: Extended window styles `WS_EX_TOOLWINDOW` and `WS_EX_NOACTIVATE` guarantee that the widget never steals input focus or appears in Alt+Tab window switching.
 4. **Shell Reconnection**: Intercepts the registered `TaskbarCreated` Win32 message. If `explorer.exe` restarts, the widget automatically rediscovers the desktop host and re-anchors itself.
 5. **Display & Work Area Clamping**: Listens for `WM_DISPLAYCHANGE`, `WM_SETTINGCHANGE`, and `SystemEvents.DisplaySettingsChanged` to clamp window coordinates safely inside the visible primary monitor work area.

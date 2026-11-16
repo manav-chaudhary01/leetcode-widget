@@ -50,7 +50,28 @@ public partial class MainWindow : Window
 
         if (DataContext is MainViewModel vm)
         {
+            vm.PropertyChanged += (s, args) =>
+            {
+                if (args.PropertyName == nameof(MainViewModel.IsEditingUsername) && vm.IsEditingUsername)
+                {
+                    _ = Dispatcher.InvokeAsync(() =>
+                    {
+                        UsernameInputBox.Focus();
+                        UsernameInputBox.SelectAll();
+                    });
+                }
+            };
+
             await vm.InitializeAsync();
+
+            if (vm.IsEditingUsername)
+            {
+                _ = Dispatcher.InvokeAsync(() =>
+                {
+                    UsernameInputBox.Focus();
+                    UsernameInputBox.SelectAll();
+                });
+            }
         }
     }
 

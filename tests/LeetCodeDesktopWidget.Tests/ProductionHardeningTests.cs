@@ -139,6 +139,63 @@ public class ProductionHardeningTests
         Assert.Contains("valid username", vm.SyncStatusText, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task MainViewModel_FirstRun_EmptyConfig_AutomaticallyEnablesUsernameEditMode()
+    {
+        string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var configService = new ConfigurationService(Path.Combine(tempDir, "config.json"));
+            var vm = new MainViewModel(new LeetCodeService(), configService, new CacheService(Path.Combine(tempDir, "cache.json")));
+
+            await vm.InitializeAsync();
+
+            Assert.True(vm.IsEditingUsername, "First launch with empty config must open username edit mode");
+            Assert.Equal("@configure-user", vm.DisplayUsername);
+            Assert.Equal("Configure username to start", vm.SyncStatusText);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void MainViewModel_DisplayUsername_ReflectsUsernameOrFallbackPrompt()
+    {
+        var vm = new MainViewModel(new LeetCodeService());
+
+        // Default empty state
+        Assert.Equal("", vm.Username);
+        Assert.Equal("@configure-user", vm.DisplayUsername);
+
+        // Whitespace state
+        vm.Username = "   ";
+        Assert.Equal("@configure-user", vm.DisplayUsername);
+
+        // Configured state
+        vm.Username = "test_user_42";
+        Assert.Equal("test_user_42", vm.DisplayUsername);
+    }
+
+    [Fact]
+    public void MainViewModel_CancelEditWithEmptyUsername_ShowsConfigureUserPrompt()
+    {
+        var vm = new MainViewModel(new LeetCodeService())
+        {
+            Username = ""
+        };
+
+        vm.ToggleEditUsernameCommand.Execute(null);
+        Assert.True(vm.IsEditingUsername);
+
+        vm.CancelEditUsernameCommand.Execute(null);
+        Assert.False(vm.IsEditingUsername);
+        Assert.Equal("@configure-user", vm.DisplayUsername);
+        Assert.Contains("configure-user", vm.SyncStatusText, StringComparison.OrdinalIgnoreCase);
+    }
+
     #endregion
 
     #region 3. LeetCode Service Hardening & Boundary Validation
@@ -304,6 +361,102 @@ public class ProductionHardeningTests
                 Assert.NotNull(manager.CurrentHostInfo);
 
                 window.Close();
+            }
+            catch (Exception ex)
+            {
+                threadException = ex;
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join(5000);
+
+        if (threadException != null) throw threadException;
+    }
+
+    [Fact]
+    public void DesktopWindowManager_AttachToDesktop_RetainsTopLevelPopupStyleAndLayeredComposition()
+    {
+        Exception? threadException = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                var window = new Window
+                {
+                    Width = 300,
+                    Height = 150,
+                    WindowStyle = WindowStyle.None,
+                    AllowsTransparency = true,
+                    ShowInTaskbar = false
+                };
+
+                using var manager = new DesktopWindowManager(window);
+                bool attached = manager.AttachToDesktop();
+                Assert.True(attached);
+
+                var hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+                long style = DesktopInterop.GetWindowLong(hwnd, DesktopInterop.GWL_STYLE);
+                long exStyle = DesktopInterop.GetWindowLong(hwnd, DesktopInterop.GWL_EXSTYLE);
+
+                // Crucial invariant: Must NOT be WS_CHILD (which breaks WPF AllowsTransparency layered composition)
+                Assert.True((style & DesktopInterop.WS_CHILD) == 0, "Window must not have WS_CHILD style");
+                Assert.True((style & DesktopInterop.WS_POPUP) != 0, "Window must remain a WS_POPUP top-level window");
+                Assert.True((exStyle & DesktopInterop.WS_EX_TOOLWINDOW) != 0, "Window must have WS_EX_TOOLWINDOW");
+                Assert.True((exStyle & DesktopInterop.WS_EX_NOACTIVATE) != 0, "Window must have WS_EX_NOACTIVATE");
+
+                window.Close();
+            }
+            catch (Exception ex)
+            {
+                threadException = ex;
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join(5000);
+
+        if (threadException != null) throw threadException;
+    }
+
+    [Fact]
+    public void DesktopWindowManager_OnInteractiveDefaultDesktop_AttachesToProgmanAndRemainsVisible()
+    {
+        Exception? threadException = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                IntPtr desk = DesktopInterop.OpenDesktop("Default", 0, false, 0x10000000);
+                if (desk != IntPtr.Zero)
+                {
+                    bool switched = DesktopInterop.SetThreadDesktop(desk);
+                    if (switched)
+                    {
+                        var window = new Window
+                        {
+                            Width = 300,
+                            Height = 150,
+                            WindowStyle = WindowStyle.None,
+                            AllowsTransparency = true,
+                            ShowInTaskbar = false
+                        };
+
+                        using var manager = new DesktopWindowManager(window);
+                        bool attached = manager.AttachToDesktop();
+                        Assert.True(attached);
+                        Assert.True(manager.CurrentHostInfo.IsAttached);
+                        Assert.NotEqual(IntPtr.Zero, manager.CurrentHostInfo.ProgmanHandle);
+
+                        var hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+                        Assert.True(DesktopInterop.IsWindowVisible(hwnd), "HWND must be visible on desktop");
+
+                        window.Close();
+                    }
+                    DesktopInterop.CloseDesktop(desk);
+                }
             }
             catch (Exception ex)
             {

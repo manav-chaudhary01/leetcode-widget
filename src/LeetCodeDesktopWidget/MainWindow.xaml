@@ -96,14 +96,14 @@
                     <StackPanel Orientation="Horizontal" 
                                 Visibility="{Binding IsEditingUsername, Converter={StaticResource InverseBoolToVis}}"
                                 Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Username, TargetNullValue='@configure-user', FallbackValue='@configure-user'}" 
+                        <TextBlock Text="{Binding DisplayUsername}" 
                                    FontSize="11" 
                                    Foreground="#58A6FF" 
                                    VerticalAlignment="Center"
                                    Cursor="Hand"
                                    MaxWidth="130"
                                    TextTrimming="CharacterEllipsis"
-                                   ToolTip="{Binding Username}">
+                                   ToolTip="Click to edit username">
                             <TextBlock.InputBindings>
                                 <MouseBinding Gesture="LeftClick" Command="{Binding ToggleEditUsernameCommand}"/>
                             </TextBlock.InputBindings>
@@ -121,7 +121,8 @@
                     <StackPanel Orientation="Horizontal" 
                                 Visibility="{Binding IsEditingUsername, Converter={StaticResource BoolToVis}}"
                                 Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
+                        <TextBox x:Name="UsernameInputBox"
+                                 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
                                  Width="120" 
                                  FontSize="11" 
                                  Background="#161B22" 

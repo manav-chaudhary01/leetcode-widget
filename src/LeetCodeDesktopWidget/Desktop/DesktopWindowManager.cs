@@ -64,35 +64,37 @@ public class DesktopWindowManager : IDisposable
         // 2. Discover Desktop Host (WorkerW or Progman)
         _hostInfo = DesktopHost.DiscoverDesktopHost();
 
+        // 3. Maintain top-level popup style to preserve WPF AllowsTransparency layered composition
+        long style = DesktopInterop.GetWindowLong(_hwnd, DesktopInterop.GWL_STYLE);
+        style = (style & ~DesktopInterop.WS_CHILD) | DesktopInterop.WS_POPUP | DesktopInterop.WS_VISIBLE | DesktopInterop.WS_CLIPSIBLINGS;
+        DesktopInterop.SetWindowLong(_hwnd, DesktopInterop.GWL_STYLE, style);
+
+        // 4. Attach to Progman as Owner Window
+        // When owned by Progman, Windows Shell treats the widget as part of the desktop:
+        // - Survives Win+D (Show Desktop)
+        // - Remains behind regular application windows (Chrome, VS Code)
+        // - Preserves full WPF layered transparency rendering and mouse interactivity
         if (_hostInfo.TargetParentHandle != IntPtr.Zero &&
             (_hostInfo.HostType == DesktopHostType.WorkerW || _hostInfo.HostType == DesktopHostType.Progman))
         {
-            // Set as child of the desktop host
-            long style = DesktopInterop.GetWindowLong(_hwnd, DesktopInterop.GWL_STYLE);
-            style = (style & ~DesktopInterop.WS_POPUP) | DesktopInterop.WS_CHILD | DesktopInterop.WS_CLIPSIBLINGS;
-            DesktopInterop.SetWindowLong(_hwnd, DesktopInterop.GWL_STYLE, style);
-
-            DesktopInterop.SetParent(_hwnd, _hostInfo.TargetParentHandle);
+            IntPtr ownerTarget = _hostInfo.ProgmanHandle != IntPtr.Zero ? _hostInfo.ProgmanHandle : _hostInfo.TargetParentHandle;
+            DesktopInterop.SetWindowLongPtr(_hwnd, DesktopInterop.GWLP_HWNDPARENT, ownerTarget);
             _hostInfo.IsAttached = true;
         }
         else
         {
-            // Fallback: If previous parent was invalidated, restore top-level popup style
-            long style = DesktopInterop.GetWindowLong(_hwnd, DesktopInterop.GWL_STYLE);
-            style = (style & ~DesktopInterop.WS_CHILD) | DesktopInterop.WS_POPUP;
-            DesktopInterop.SetWindowLong(_hwnd, DesktopInterop.GWL_STYLE, style);
-            DesktopInterop.SetParent(_hwnd, IntPtr.Zero);
-
-            SendToBottom();
+            DesktopInterop.SetWindowLongPtr(_hwnd, DesktopInterop.GWLP_HWNDPARENT, IntPtr.Zero);
             _hostInfo.IsAttached = false;
         }
 
-        // Apply updated frame and refresh Z-order
+        // 5. Position at HWND_BOTTOM and ensure visible without focus steal
         DesktopInterop.SetWindowPos(
             _hwnd,
-            _hostInfo.IsAttached ? IntPtr.Zero : DesktopInterop.HWND_BOTTOM,
+            DesktopInterop.HWND_BOTTOM,
             0, 0, 0, 0,
-            DesktopInterop.SWP_NOMOVE | DesktopInterop.SWP_NOSIZE | DesktopInterop.SWP_NOACTIVATE | DesktopInterop.SWP_FRAMECHANGED);
+            DesktopInterop.SWP_NOMOVE | DesktopInterop.SWP_NOSIZE | DesktopInterop.SWP_NOACTIVATE | DesktopInterop.SWP_SHOWWINDOW | DesktopInterop.SWP_FRAMECHANGED);
+
+        DesktopInterop.ShowWindow(_hwnd, DesktopInterop.SW_SHOWNOACTIVATE);
 
         return true;
     }
@@ -148,9 +150,9 @@ public class DesktopWindowManager : IDisposable
         switch (uMsg)
         {
             case DesktopInterop.WM_WINDOWPOSCHANGING:
-                if (_hostInfo.HostType == DesktopHostType.BottomPinnedFallback && lParam != IntPtr.Zero)
+                if (lParam != IntPtr.Zero)
                 {
-                    // Enforce that window stays at bottom of Z-order
+                    // Enforce that window always stays at bottom of Z-order behind normal application windows
                     var winPos = Marshal.PtrToStructure<DesktopInterop.WINDOWPOS>(lParam);
                     winPos.hwndInsertAfter = DesktopInterop.HWND_BOTTOM;
                     Marshal.StructureToPtr(winPos, lParam, false);

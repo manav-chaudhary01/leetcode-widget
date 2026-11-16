@@ -18,6 +18,7 @@ public static class DesktopInterop
 
     // Window styles (GWL_STYLE)
     public const int GWL_STYLE = -16;
+    public const int GWLP_HWNDPARENT = -8;
     public const long WS_CHILD = 0x40000000L;
     public const long WS_POPUP = 0x80000000L;
     public const long WS_VISIBLE = 0x10000000L;
@@ -98,6 +99,21 @@ public static class DesktopInterop
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
+    [DllImport("user32.dll")]
+    public static extern bool IsWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT
+    {
+        public int Left, Top, Right, Bottom;
+    }
+
+    [DllImport("user32.dll")]
+    public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     public static extern IntPtr SendMessageTimeout(
         IntPtr hWnd,
@@ -132,6 +148,13 @@ public static class DesktopInterop
         return Environment.Is64BitProcess
             ? SetWindowLongPtr64(hWnd, nIndex, (IntPtr)dwNewLong).ToInt64()
             : SetWindowLong32(hWnd, nIndex, (int)dwNewLong);
+    }
+
+    public static IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
+    {
+        return Environment.Is64BitProcess
+            ? SetWindowLongPtr64(hWnd, nIndex, dwNewLong)
+            : new IntPtr(SetWindowLong32(hWnd, nIndex, dwNewLong.ToInt32()));
     }
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLong", SetLastError = true)]

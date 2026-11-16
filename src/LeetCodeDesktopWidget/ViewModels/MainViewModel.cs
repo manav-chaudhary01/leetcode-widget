@@ -57,9 +57,12 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             {
                 _username = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayUsername));
             }
         }
     }
+
+    public string DisplayUsername => string.IsNullOrWhiteSpace(Username) ? "@configure-user" : Username;
 
     public bool IsEditingUsername
     {
@@ -217,6 +220,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         Username = _usernameBeforeEdit;
         IsEditingUsername = false;
+        if (string.IsNullOrWhiteSpace(Username))
+        {
+            SyncStatusText = "Click @configure-user to set username";
+        }
     }
 
     public async Task InitializeAsync()
@@ -227,6 +234,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             _username = config.Username;
             OnPropertyChanged(nameof(Username));
+            OnPropertyChanged(nameof(DisplayUsername));
         }
 
         if (config.SelectedYear > 2000)
@@ -265,6 +273,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         else
         {
             SyncStatusText = "Configure username to start";
+            IsEditingUsername = true;
         }
 
         if (!_refreshCoordinator.IsRunning)
