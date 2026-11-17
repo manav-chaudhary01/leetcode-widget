@@ -33,29 +33,31 @@
         <helpers:BooleanToVisibilityConverter x:Key="InverseBoolToVis" Invert="True"/>
         <helpers:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVis"/>
 
-        <!-- Dark Minimal ToolTip -->
+        <!-- Neutral Minimal ToolTip -->
         <Style TargetType="ToolTip">
-            <Setter Property="Background" Value="#16191D"/>
-            <Setter Property="Foreground" Value="#C9D1D9"/>
-            <Setter Property="BorderBrush" Value="#262C34"/>
+            <Setter Property="Background" Value="#222222"/>
+            <Setter Property="Foreground" Value="#EEEEEE"/>
+            <Setter Property="BorderBrush" Value="#303030"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8,4"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
         </Style>
 
-        <!-- Dark TextBox Style -->
+        <!-- Neutral Input Box Style -->
         <Style x:Key="DarkInputBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#121519"/>
-            <Setter Property="Foreground" Value="#F0F6FC"/>
-            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="Background" Value="#222222"/>
+            <Setter Property="Foreground" Value="#EEEEEE"/>
+            <Setter Property="BorderBrush" Value="#303030"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CaretBrush" Value="#58A6FF"/>
+            <Setter Property="CaretBrush" Value="#EEEEEE"/>
             <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
             <Setter Property="Padding" Value="6,3"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
@@ -69,10 +71,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="#484F58"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#444444"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="#58A6FF"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#606060"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -80,17 +82,18 @@
             </Setter>
         </Style>
 
-        <!-- Dark Minimal Icon Button -->
+        <!-- Neutral Minimal Icon Button -->
         <Style x:Key="DarkIconButton" TargetType="Button">
-            <Setter Property="Background" Value="#181B20"/>
-            <Setter Property="Foreground" Value="#8B949E"/>
-            <Setter Property="BorderBrush" Value="#262C34"/>
+            <Setter Property="Background" Value="#222222"/>
+            <Setter Property="Foreground" Value="#A0A0A0"/>
+            <Setter Property="BorderBrush" Value="#303030"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="6,2"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Focusable" Value="False"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -105,14 +108,14 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="#262C34"/>
-                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#484F58"/>
-                                <Setter Property="Foreground" Value="#F0F6FC"/>
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#2A2A2A"/>
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#444444"/>
+                                <Setter Property="Foreground" Value="#EEEEEE"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="#121519"/>
-                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#262C34"/>
-                                <Setter Property="Foreground" Value="#C9D1D9"/>
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#191919"/>
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#303030"/>
+                                <Setter Property="Foreground" Value="#A0A0A0"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.4"/>
@@ -123,11 +126,11 @@
             </Setter>
         </Style>
 
-        <!-- Green Action Button (Tactile craft styling) -->
-        <Style x:Key="GreenActionButton" TargetType="Button">
-            <Setter Property="Background" Value="#238636"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="#2EA043"/>
+        <!-- Neutral Primary Action Button (Tactile monochromatic styling) -->
+        <Style x:Key="PrimaryActionButton" TargetType="Button">
+            <Setter Property="Background" Value="#2E2E2E"/>
+            <Setter Property="Foreground" Value="#EEEEEE"/>
+            <Setter Property="BorderBrush" Value="#444444"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="14,5"/>
             <Setter Property="FontSize" Value="11.5"/>
@@ -135,6 +138,7 @@
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Focusable" Value="False"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -149,15 +153,17 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="#2EA043"/>
-                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#3FB950"/>
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#383838"/>
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#555555"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="#1E7E34"/>
-                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#238636"/>
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#222222"/>
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#333333"/>
+                                <Setter Property="Foreground" Value="#A0A0A0"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.45"/>
+                                <Setter Property="Opacity" Value="0.4"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -165,17 +171,21 @@
             </Setter>
         </Style>
 
-        <!-- Secondary Action Button -->
+        <!-- Compatibility alias for GreenActionButton mapped to neutral PrimaryActionButton -->
+        <Style x:Key="GreenActionButton" BasedOn="{StaticResource PrimaryActionButton}" TargetType="Button"/>
+
+        <!-- Neutral Secondary Action Button -->
         <Style x:Key="SecondaryActionButton" TargetType="Button">
-            <Setter Property="Background" Value="#1C2128"/>
-            <Setter Property="Foreground" Value="#C9D1D9"/>
-            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="Background" Value="#222222"/>
+            <Setter Property="Foreground" Value="#A0A0A0"/>
+            <Setter Property="BorderBrush" Value="#303030"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,3"/>
             <Setter Property="FontSize" Value="10.5"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Focusable" Value="False"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -190,12 +200,17 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="#262C34"/>
-                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#58A6FF"/>
-                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#2A2A2A"/>
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#444444"/>
+                                <Setter Property="Foreground" Value="#EEEEEE"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="#16191D"/>
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#191919"/>
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#303030"/>
+                                <Setter Property="Foreground" Value="#A0A0A0"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -203,7 +218,7 @@
             </Setter>
         </Style>
 
-        <!-- Custom ComboBox ToggleButton Style -->
+        <!-- Custom ComboBox ToggleButton Style (Strict Monochromatic) -->
         <ControlTemplate x:Key="ComboBoxToggleButtonTemplate" TargetType="ToggleButton">
             <Border x:Name="TemplateRoot"
                     Background="{TemplateBinding Background}"
@@ -221,35 +236,36 @@
                           HorizontalAlignment="Center"
                           VerticalAlignment="Center"
                           Data="M 0 0 L 3 3 L 6 0 Z"
-                          Fill="#7D8590"/>
+                          Fill="#A0A0A0"/>
                 </Grid>
             </Border>
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="TemplateRoot" Property="Background" Value="#21262D"/>
-                    <Setter TargetName="TemplateRoot" Property="BorderBrush" Value="#484F58"/>
-                    <Setter TargetName="Arrow" Property="Fill" Value="#C9D1D9"/>
+                    <Setter TargetName="TemplateRoot" Property="Background" Value="#2A2A2A"/>
+                    <Setter TargetName="TemplateRoot" Property="BorderBrush" Value="#444444"/>
+                    <Setter TargetName="Arrow" Property="Fill" Value="#EEEEEE"/>
                 </Trigger>
                 <Trigger Property="IsChecked" Value="True">
-                    <Setter TargetName="TemplateRoot" Property="Background" Value="#1C2128"/>
-                    <Setter TargetName="TemplateRoot" Property="BorderBrush" Value="#58A6FF"/>
-                    <Setter TargetName="Arrow" Property="Fill" Value="#58A6FF"/>
+                    <Setter TargetName="TemplateRoot" Property="Background" Value="#222222"/>
+                    <Setter TargetName="TemplateRoot" Property="BorderBrush" Value="#505050"/>
+                    <Setter TargetName="Arrow" Property="Fill" Value="#EEEEEE"/>
                 </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
-                    <Setter TargetName="TemplateRoot" Property="Opacity" Value="0.5"/>
+                    <Setter TargetName="TemplateRoot" Property="Opacity" Value="0.4"/>
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
 
-        <!-- ComboBoxItem Style -->
+        <!-- Neutral ComboBoxItem Style -->
         <Style x:Key="DarkComboBoxItemStyle" TargetType="ComboBoxItem">
             <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Padding" Value="8,4"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#C9D1D9"/>
+            <Setter Property="Foreground" Value="#A0A0A0"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBoxItem">
@@ -263,12 +279,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="#21262D"/>
-                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#2A2A2A"/>
+                                <Setter Property="Foreground" Value="#EEEEEE"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="#0E3A22"/>
-                                <Setter Property="Foreground" Value="#3FB950"/>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#303030"/>
+                                <Setter Property="Foreground" Value="#EEEEEE"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -277,17 +293,19 @@
             </Setter>
         </Style>
 
-        <!-- Custom Dark Year ComboBox Style -->
+        <!-- Custom Dark Year ComboBox Style (Neutral Charcoal, No Red Outline) -->
         <Style x:Key="DarkYearComboBox" TargetType="ComboBox">
-            <Setter Property="Background" Value="#181B20"/>
-            <Setter Property="Foreground" Value="#E6EDF3"/>
-            <Setter Property="BorderBrush" Value="#262C34"/>
+            <Setter Property="Background" Value="#222222"/>
+            <Setter Property="Foreground" Value="#EEEEEE"/>
+            <Setter Property="BorderBrush" Value="#303030"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize" Value="10.5"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="ItemContainerStyle" Value="{StaticResource DarkComboBoxItemStyle}"/>
+            <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
@@ -298,6 +316,7 @@
                                           BorderBrush="{TemplateBinding BorderBrush}"
                                           BorderThickness="{TemplateBinding BorderThickness}"
                                           Focusable="False"
+                                          FocusVisualStyle="{x:Null}"
                                           IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                           ClickMode="Press"/>
                             <ContentPresenter x:Name="ContentSite"
@@ -315,8 +334,8 @@
                                    Placement="Bottom"
                                    PopupAnimation="Slide">
                                 <Border x:Name="DropDownBorder"
-                                        Background="#161B22"
-                                        BorderBrush="#262C34"
+                                        Background="#222222"
+                                        BorderBrush="#303030"
                                         BorderThickness="1"
                                         CornerRadius="4"
                                         MinWidth="{Binding ActualWidth, ElementName=MainGrid}"
@@ -336,8 +355,11 @@
                             <Trigger Property="HasItems" Value="False">
                                 <Setter TargetName="DropDownBorder" Property="Height" Value="0"/>
                             </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter Property="BorderBrush" Value="#444444"/>
+                            </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.5"/>
+                                <Setter Property="Opacity" Value="0.4"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -346,9 +368,9 @@
         </Style>
     </Window.Resources>
 
-    <!-- Main Widget Surface: Deep dark charcoal with subtle border -->
-    <Border Background="#F212151A"
-            BorderBrush="#262C34"
+    <!-- Main Widget Surface: Strict Neutral Dark Charcoal with Subtle Border -->
+    <Border Background="#191919"
+            BorderBrush="#303030"
             BorderThickness="1"
             CornerRadius="10"
             Padding="16,12"
@@ -358,7 +380,7 @@
             <Grid Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- Row 0: Top Bar with Brand & Drag Grip -->
-                    <RowDefinition Height="Auto"/> <!-- Row 1: Hero Section (Illustration + Stats + Streak) -->
+                    <RowDefinition Height="Auto"/> <!-- Row 1: Hero Section (Identity + Stats + Controls/Streak) -->
                     <RowDefinition Height="Auto"/> <!-- Row 2: Activity Header Line -->
                     <RowDefinition Height="*"/>    <!-- Row 3: Heatmap -->
                     <RowDefinition Height="Auto"/> <!-- Row 4: Footer (Telemetry & Legend) -->
@@ -375,17 +397,17 @@
                                 ToolTip="Click and drag to move widget"
                                 MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"
                                 VerticalAlignment="Center">
-                        <Ellipse x:Name="DesktopStatusDot" Width="7.5" Height="7.5" Fill="#238636" Margin="0,0,7,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
+                        <Ellipse x:Name="DesktopStatusDot" Width="7.5" Height="7.5" Fill="#606060" Margin="0,0,7,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
                         <TextBlock Text="LEETCODE" 
                                    FontSize="10" 
                                    FontWeight="Bold" 
-                                   Foreground="#7D8590" 
+                                   Foreground="#A0A0A0" 
                                    FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
                                    VerticalAlignment="Center"/>
                         <TextBlock Text=" ⋮⋮" 
                                    FontSize="11" 
                                    FontWeight="Bold" 
-                                   Foreground="#3A414B" 
+                                   Foreground="#505050" 
                                    FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
                                    VerticalAlignment="Center"
                                    Margin="4,0,0,0"/>
@@ -399,87 +421,30 @@
                             MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"/>
                 </DockPanel>
 
-                <!-- Row 1: Handcrafted Illustrated Hero Section (Workstation + Identity/Stats + Streak/Controls) -->
+                <!-- Row 1: Neutral Clean Hero Section (Space Reclaimed from Removed Illustration) -->
                 <Grid Grid.Row="1" Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/> <!-- Col 0: Framed Workstation Illustration -->
-                        <ColumnDefinition Width="*"/>    <!-- Col 1: Identity, Solved Count, Difficulty Blocks -->
-                        <ColumnDefinition Width="Auto"/> <!-- Col 2: Year/Refresh Controls & Amber Streak Box -->
+                        <ColumnDefinition Width="*"/>    <!-- Col 0: Identity, Solved Count, Inline Difficulty -->
+                        <ColumnDefinition Width="Auto"/> <!-- Col 1: Year/Refresh Controls & Neutral Streak Box -->
                     </Grid.ColumnDefinitions>
 
-                    <!-- Col 0: Contained Illustrated Workstation Vignette -->
-                    <Border Grid.Column="0"
-                            Background="#14181F" 
-                            BorderBrush="#222730" 
-                            BorderThickness="1" 
-                            CornerRadius="6" 
-                            Padding="8,5" 
-                            Margin="0,0,14,0" 
-                            VerticalAlignment="Center">
-                        <Grid Width="92" Height="60" SnapsToDevicePixels="True">
-                            <!-- Desk Surface Base -->
-                            <Rectangle Width="84" Height="4" RadiusX="2" RadiusY="2" Fill="#1A1E26" VerticalAlignment="Bottom" Margin="4,0,4,3"/>
-                            <Rectangle Width="76" Height="1" Fill="#2C323D" VerticalAlignment="Bottom" Margin="8,0,8,7"/>
-
-                            <!-- Left: Potted Desk Succulent -->
-                            <Canvas Width="16" Height="24" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="3,0,0,6">
-                                <Path Data="M 8 12 C 5 8, 2 7, 3 3 C 6 4, 8 8, 8 12 Z" Fill="#238C44"/>
-                                <Path Data="M 8 12 C 8 7, 8 3, 10 1 C 12 4, 11 8, 8 12 Z" Fill="#3FB950"/>
-                                <Path Data="M 8 12 C 11 8, 14 7, 13 3 C 10 4, 8 8, 8 12 Z" Fill="#2EB856"/>
-                                <Polygon Points="2,12 14,12 12,21 4,21" Fill="#2A221C"/>
-                                <Rectangle Canvas.Left="1" Canvas.Top="11" Width="14" Height="2" RadiusX="1" RadiusY="1" Fill="#3D2E24"/>
-                            </Canvas>
-
-                            <!-- Center: Retro-Modern Terminal Monitor with Illuminated Code Glyphs -->
-                            <Canvas Width="48" Height="46" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,2,0,0">
-                                <!-- Stand Base & Neck -->
-                                <Rectangle Canvas.Left="19" Canvas.Top="36" Width="10" Height="8" Fill="#1E222A"/>
-                                <Rectangle Canvas.Left="14" Canvas.Top="43" Width="20" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#262C35"/>
-
-                                <!-- Monitor Bezel -->
-                                <Border Canvas.Left="3" Canvas.Top="4" Width="42" Height="33" Background="#21262D" BorderBrush="#2D333E" BorderThickness="1" CornerRadius="4">
-                                    <Border Margin="2.5" Background="#0C1A12" BorderBrush="#143A22" BorderThickness="0.8" CornerRadius="2">
-                                        <Grid>
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <TextBlock Text="&lt;" FontSize="11" FontWeight="Bold" Foreground="#2EB856" Margin="0,0,1,0"/>
-                                                <TextBlock Text="/" FontSize="10" FontWeight="Bold" Foreground="#3FB950"/>
-                                                <TextBlock Text="&gt;" FontSize="11" FontWeight="Bold" Foreground="#2EB856" Margin="1,0,0,0"/>
-                                            </StackPanel>
-                                            <Rectangle Height="1" Fill="#104D27" Opacity="0.4" VerticalAlignment="Bottom" Margin="2,0,2,2"/>
-                                        </Grid>
-                                    </Border>
-                                </Border>
-                                <!-- Power indicator light -->
-                                <Ellipse Canvas.Left="23" Canvas.Top="35" Width="2" Height="2" Fill="#3FB950"/>
-                            </Canvas>
-
-                            <!-- Right: Cute Coffee Mug with Steam -->
-                            <Canvas Width="16" Height="22" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,3,6">
-                                <Path Data="M 7 4 C 6 2, 9 1, 7 0" Stroke="#555E69" StrokeThickness="1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Fill="Transparent"/>
-                                <Rectangle Canvas.Left="2" Canvas.Top="7" Width="10" Height="11" RadiusX="1.5" RadiusY="1.5" Fill="#E6EDF3"/>
-                                <Rectangle Canvas.Left="2" Canvas.Top="11" Width="10" Height="2" Fill="#238C44"/>
-                                <Path Data="M 12 9 C 15 9, 15 15, 12 15" Stroke="#C9D1D9" StrokeThickness="1.5" Fill="Transparent"/>
-                            </Canvas>
-                        </Grid>
-                    </Border>
-
-                    <!-- Col 1: Identity, Solved Counter & Tactile Difficulty Blocks -->
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <!-- Col 0: Identity, Solved Counter & Inline Neutral Difficulty -->
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
                         <!-- Identity Row -->
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- Display Mode -->
                             <StackPanel Orientation="Horizontal" 
                                         Visibility="{Binding IsEditingUsername, Converter={StaticResource InverseBoolToVis}}"
                                         VerticalAlignment="Center">
-                                <TextBlock Text="@" FontSize="13" FontWeight="Normal" Foreground="#6E7681" VerticalAlignment="Center"/>
+                                <TextBlock Text="@" FontSize="13" FontWeight="Normal" Foreground="#707070" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding DisplayUsername}" 
-                                           FontSize="13.5" 
+                                           FontSize="14" 
                                            FontWeight="Bold" 
-                                           Foreground="#F0F6FC" 
+                                           Foreground="#EEEEEE" 
                                            FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
                                            VerticalAlignment="Center"
                                            Cursor="Hand"
-                                           MaxWidth="180"
+                                           MaxWidth="260"
                                            TextTrimming="CharacterEllipsis"
                                            ToolTip="Click to change username">
                                     <TextBlock.InputBindings>
@@ -494,14 +459,14 @@
                                         Padding="4,1"
                                         FontSize="9"/>
 
-                                <!-- Verified Pill -->
+                                <!-- Subtle Neutral Verified Pill -->
                                 <Border Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}"
-                                        Background="#0D2E1C" BorderBrush="#1B5E34" BorderThickness="1" CornerRadius="3"
+                                        Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="3"
                                         Padding="6,1.5" Margin="8,0,0,0" VerticalAlignment="Center"
                                         ToolTip="{Binding VerificationBadgeTooltip}">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Ellipse Width="4.5" Height="4.5" Fill="#3FB950" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="verified" FontSize="9" FontWeight="SemiBold" Foreground="#3FB950"/>
+                                        <Ellipse Width="4.5" Height="4.5" Fill="#A0A0A0" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="verified" FontSize="9" FontWeight="SemiBold" Foreground="#A0A0A0"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -513,7 +478,7 @@
                                 <TextBox x:Name="UsernameInputBox"
                                          Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
                                          Style="{StaticResource DarkInputBox}"
-                                         Width="130" 
+                                         Width="150" 
                                          FontSize="11" 
                                          Padding="4,2">
                                     <TextBox.InputBindings>
@@ -538,49 +503,34 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Solved Metric Row -->
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding TotalSolved}" FontSize="24" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                            <TextBlock Text="SOLVED" FontSize="10" FontWeight="Bold" Foreground="#7D8590" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
+                        <!-- Solved Metric & Understated Single-Line Difficulty Breakdown -->
+                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0" VerticalAlignment="Center">
+                            <!-- Prominent Solved Metric -->
+                            <TextBlock Text="{Binding TotalSolved}" FontSize="22" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                            <TextBlock Text="SOLVED" FontSize="10" FontWeight="Bold" Foreground="#707070" Margin="5,0,16,0" VerticalAlignment="Center"/>
 
-                        <!-- Difficulty Blocks Row (Tactile compact containers) -->
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0" VerticalAlignment="Center">
-                            <!-- Easy Block -->
-                            <Border Background="#0E2417" BorderBrush="#1B4D2B" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,5,0">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding EasySolved}" FontSize="11" FontWeight="Bold" Foreground="#3FB950" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" EASY" FontSize="8.5" FontWeight="Bold" Foreground="#7EE787" Margin="3,0,0,0" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Medium Block -->
-                            <Border Background="#241B0E" BorderBrush="#4D361B" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,5,0">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding MediumSolved}" FontSize="11" FontWeight="Bold" Foreground="#E3B341" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" MEDIUM" FontSize="8.5" FontWeight="Bold" Foreground="#F0883E" Margin="3,0,0,0" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Hard Block -->
-                            <Border Background="#261214" BorderBrush="#542226" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding HardSolved}" FontSize="11" FontWeight="Bold" Foreground="#F85149" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" HARD" FontSize="8.5" FontWeight="Bold" Foreground="#FF7B72" Margin="3,0,0,0" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
+                            <!-- Understated Neutral Difficulty on Single Line -->
+                            <TextBlock Text="{Binding EasySolved}" FontSize="11" FontWeight="SemiBold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                            <TextBlock Text=" easy" FontSize="11" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                            <TextBlock Text="  ·  " FontSize="11" Foreground="#444444" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding MediumSolved}" FontSize="11" FontWeight="SemiBold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                            <TextBlock Text=" medium" FontSize="11" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                            <TextBlock Text="  ·  " FontSize="11" Foreground="#444444" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding HardSolved}" FontSize="11" FontWeight="SemiBold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                            <TextBlock Text=" hard" FontSize="11" Foreground="#A0A0A0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Col 2: Controls & Tactile Amber Streak Box -->
-                    <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- Col 1: Year Selector, Refresh & Neutral Streak Box -->
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <!-- Controls Row: Year Dropdown & Refresh Button -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,5">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,4">
                             <ComboBox ItemsSource="{Binding AvailableYears}"
                                       SelectedItem="{Binding SelectedYear}"
                                       Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
                                       Style="{StaticResource DarkYearComboBox}"
-                                      Width="68"
+                                      Width="72"
+                                      Height="24"
                                       Margin="0,0,6,0"
                                       Focusable="False"/>
 
@@ -589,35 +539,30 @@
                                     IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
                                     ToolTip="Refresh from LeetCode"
                                     Style="{StaticResource DarkIconButton}" 
-                                    Width="26" Height="22"
+                                    Width="26" Height="24"
                                     FontSize="11"
                                     FontWeight="Bold"/>
                         </StackPanel>
 
-                        <!-- Tactile Amber Streak Box: Current Streak + Max Streak -->
-                        <Border Background="#1C1710" BorderBrush="#463116" BorderThickness="1" CornerRadius="6" Padding="10,5">
-                            <StackPanel Orientation="Vertical">
-                                <!-- Line 1: Current Streak -->
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <TextBlock Text="🔥" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding CurrentStreak}" FontSize="15" FontWeight="Bold" Foreground="#F2CC60" VerticalAlignment="Center"/>
-                                    <TextBlock Text=" DAY STREAK" FontSize="9" FontWeight="Bold" Foreground="#E3B341" Margin="3,0,0,0" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <!-- Line 2: Max Streak -->
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0" VerticalAlignment="Center">
-                                    <TextBlock Text="MAX " FontSize="8.5" FontWeight="SemiBold" Foreground="#8B949E"/>
-                                    <TextBlock Text="{Binding LongestStreak, Mode=OneWay}" FontSize="9.5" FontWeight="Bold" Foreground="#E6EDF3"/>
-                                    <TextBlock Text="D" FontSize="8.5" FontWeight="SemiBold" Foreground="#8B949E"/>
-                                </StackPanel>
+                        <!-- Neutral Monochromatic Streak Box -->
+                        <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="8,3" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🔥" FontSize="11" Foreground="#EEEEEE" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentStreak}" FontSize="12.5" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                                <TextBlock Text=" DAY STREAK" FontSize="9.5" FontWeight="SemiBold" Foreground="#A0A0A0" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="  ·  " FontSize="10" Foreground="#444444" Margin="3,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="MAX " FontSize="9" FontWeight="Normal" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding LongestStreak, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                                <TextBlock Text="D" FontSize="9" FontWeight="Normal" Foreground="#A0A0A0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
                 </Grid>
 
                 <!-- Row 2: Subtle Activity Header Line -->
-                <DockPanel Grid.Row="2" Margin="2,5,2,2">
-                    <TextBlock Text="activity" FontSize="10" FontWeight="SemiBold" Foreground="#7D8590" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                    <Rectangle Height="1" Fill="#1E232A" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                <DockPanel Grid.Row="2" Margin="2,6,2,3">
+                    <TextBlock Text="activity" FontSize="10" FontWeight="SemiBold" Foreground="#A0A0A0" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                    <Rectangle Height="1" Fill="#303030" Margin="10,0,0,0" VerticalAlignment="Center"/>
                 </DockPanel>
 
                 <!-- Row 3: Heatmap Grid Canvas -->
@@ -629,38 +574,38 @@
                                       Margin="0,1"/>
 
                 <!-- Row 4: Footer: Selected-Year Telemetry & Contribution Legend -->
-                <DockPanel Grid.Row="4" Margin="2,3,2,0">
+                <DockPanel Grid.Row="4" Margin="2,4,2,0">
                     <!-- Selected-Year Telemetry & Hover Info -->
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding SelectedYear}" FontSize="10" FontWeight="Bold" Foreground="#58A6FF"/>
-                        <TextBlock Text=" activity  ·  " FontSize="10" Foreground="#555E69"/>
-                        <TextBlock Text="{Binding YearSubmissions}" FontSize="10" FontWeight="SemiBold" Foreground="#E6EDF3"/>
-                        <TextBlock Text=" submissions  ·  " FontSize="10" Foreground="#555E69"/>
-                        <TextBlock Text="{Binding YearActiveDays}" FontSize="10" FontWeight="SemiBold" Foreground="#E6EDF3"/>
-                        <TextBlock Text=" active days  ·  " FontSize="10" Foreground="#555E69"/>
-                        <TextBlock Text="{Binding YearAverageText}" FontSize="10" FontWeight="SemiBold" Foreground="#E6EDF3"/>
-                        <TextBlock Text="/day avg" FontSize="10" Foreground="#555E69"/>
+                        <TextBlock Text="{Binding SelectedYear}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" activity  ·  " FontSize="10" Foreground="#707070"/>
+                        <TextBlock Text="{Binding YearSubmissions}" FontSize="10" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" submissions  ·  " FontSize="10" Foreground="#707070"/>
+                        <TextBlock Text="{Binding YearActiveDays}" FontSize="10" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" active days  ·  " FontSize="10" Foreground="#707070"/>
+                        <TextBlock Text="{Binding YearAverageText}" FontSize="10" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text="/day avg" FontSize="10" Foreground="#707070"/>
 
                         <!-- Soft Divider -->
-                        <TextBlock Text="  |  " FontSize="10" Foreground="#2A313C" Margin="6,0"/>
+                        <TextBlock Text="  |  " FontSize="10" Foreground="#303030" Margin="6,0"/>
 
                         <!-- Hover Info Text -->
                         <TextBlock Text="{Binding HoverInfoText}" 
                                    FontSize="10" 
-                                   Foreground="#8B949E" 
+                                   Foreground="#A0A0A0" 
                                    MaxWidth="260"
                                    TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
 
                     <!-- Right: 5-Level Contribution Legend -->
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <TextBlock Text="Less" FontSize="9" Foreground="#555E69" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                        <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#15181D" Stroke="#21262D" StrokeThickness="0.5" Margin="2,0"/>
+                        <TextBlock Text="Less" FontSize="9" Foreground="#707070" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                        <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#222222" Stroke="#303030" StrokeThickness="0.8" Margin="2,0"/>
                         <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#0E3A22" Margin="2,0"/>
                         <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#186334" Margin="2,0"/>
                         <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#238C44" Margin="2,0"/>
                         <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#2EB856" Margin="2,0"/>
-                        <TextBlock Text="More" FontSize="9" Foreground="#555E69" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="More" FontSize="9" Foreground="#707070" Margin="5,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
                 </DockPanel>
             </Grid>
@@ -677,85 +622,46 @@
                                 Cursor="SizeAll"
                                 ToolTip="Click and drag to move widget"
                                 MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"
-                                Margin="0,0,0,10">
-                        <Ellipse x:Name="OnboardingStatusDot" Width="7.5" Height="7.5" Fill="#238636" Margin="0,0,7,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
+                                Margin="0,0,0,16">
+                        <Ellipse x:Name="OnboardingStatusDot" Width="7.5" Height="7.5" Fill="#606060" Margin="0,0,7,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
                         <TextBlock Text="LEETCODE" 
                                    FontSize="10" 
                                    FontWeight="Bold" 
-                                   Foreground="#7D8590" 
+                                   Foreground="#A0A0A0" 
                                    FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
                                    VerticalAlignment="Center"/>
                         <TextBlock Text=" ⋮⋮" 
                                    FontSize="11" 
                                    FontWeight="Bold" 
-                                   Foreground="#3A414B" 
+                                   Foreground="#505050" 
                                    FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
                                    VerticalAlignment="Center"
                                    Margin="4,0,0,0"/>
                     </StackPanel>
 
-                    <!-- Handcrafted Workstation Illustration (Onboarding Edition) -->
-                    <Border Background="#14181F" BorderBrush="#222730" BorderThickness="1" CornerRadius="6" Padding="10,6" HorizontalAlignment="Center" Margin="0,0,0,10">
-                        <Grid Width="96" Height="62" HorizontalAlignment="Center">
-                            <!-- Desk Surface Base -->
-                            <Rectangle Width="84" Height="4" RadiusX="2" RadiusY="2" Fill="#1A1E26" VerticalAlignment="Bottom" Margin="4,0,4,3"/>
-                            <Rectangle Width="76" Height="1" Fill="#2C323D" VerticalAlignment="Bottom" Margin="8,0,8,7"/>
-
-                            <!-- Left: Succulent Plant -->
-                            <Canvas Width="16" Height="24" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="3,0,0,6">
-                                <Path Data="M 8 12 C 5 8, 2 7, 3 3 C 6 4, 8 8, 8 12 Z" Fill="#238C44"/>
-                                <Path Data="M 8 12 C 8 7, 8 3, 10 1 C 12 4, 11 8, 8 12 Z" Fill="#3FB950"/>
-                                <Polygon Points="2,12 14,12 12,21 4,21" Fill="#2A221C"/>
-                                <Rectangle Canvas.Left="1" Canvas.Top="11" Width="14" Height="2" RadiusX="1" RadiusY="1" Fill="#3D2E24"/>
-                            </Canvas>
-
-                            <!-- Center: Terminal Monitor showing connect prompt -->
-                            <Canvas Width="48" Height="46" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,2,0,0">
-                                <Rectangle Canvas.Left="19" Canvas.Top="36" Width="10" Height="8" Fill="#1E222A"/>
-                                <Rectangle Canvas.Left="14" Canvas.Top="43" Width="20" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#262C35"/>
-                                <Border Canvas.Left="3" Canvas.Top="4" Width="42" Height="33" Background="#21262D" BorderBrush="#2D333E" BorderThickness="1" CornerRadius="4">
-                                    <Border Margin="2.5" Background="#0C1A12" BorderBrush="#143A22" BorderThickness="0.8" CornerRadius="2">
-                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock Text="login: _" FontSize="8.5" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#3FB950"/>
-                                        </StackPanel>
-                                    </Border>
-                                </Border>
-                                <Ellipse Canvas.Left="23" Canvas.Top="35" Width="2" Height="2" Fill="#D29922"/>
-                            </Canvas>
-
-                            <!-- Right: Coffee Mug -->
-                            <Canvas Width="16" Height="22" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,3,6">
-                                <Path Data="M 7 4 C 6 2, 9 1, 7 0" Stroke="#555E69" StrokeThickness="1" Fill="Transparent"/>
-                                <Rectangle Canvas.Left="2" Canvas.Top="7" Width="10" Height="11" RadiusX="1.5" RadiusY="1.5" Fill="#E6EDF3"/>
-                                <Rectangle Canvas.Left="2" Canvas.Top="11" Width="10" Height="2" Fill="#238C44"/>
-                                <Path Data="M 12 9 C 15 9, 15 15, 12 15" Stroke="#C9D1D9" StrokeThickness="1.5" Fill="Transparent"/>
-                            </Canvas>
-                        </Grid>
-                    </Border>
-
                     <!-- Title -->
                     <TextBlock Text="CONNECT YOUR ACCOUNT" 
-                               FontSize="13.5" 
+                               FontSize="14" 
                                FontWeight="Bold" 
-                               Foreground="#F0F6FC" 
+                               Foreground="#EEEEEE" 
                                FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
                                HorizontalAlignment="Center" 
-                               Margin="0,0,0,4"/>
+                               Margin="0,0,0,6"/>
 
                     <!-- Subtitle / Explanation -->
                     <TextBlock Text="Your activity and streaks will appear here once your account is verified."
                                FontSize="11"
-                               Foreground="#7D8590"
+                               Foreground="#A0A0A0"
                                HorizontalAlignment="Center"
                                TextAlignment="Center"
-                               Margin="0,0,0,12"/>
+                               Margin="0,0,0,16"/>
 
                     <!-- Input + Action -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
                         <TextBox x:Name="OnboardingUsernameBox"
                                  Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource DarkInputBox}"
-                                 Width="190"
+                                 Width="200"
                                  FontSize="11.5"
                                  Padding="8,5"
                                  ToolTip="Enter LeetCode username">
@@ -766,7 +672,7 @@
                         </TextBox>
                         <Button Content="Verify Ownership"
                                 Command="{Binding StartVerificationCommand}"
-                                Style="{StaticResource GreenActionButton}"
+                                Style="{StaticResource PrimaryActionButton}"
                                 Margin="8,0,0,0"
                                 FontSize="11.5"/>
                     </StackPanel>
@@ -775,7 +681,7 @@
                     <TextBlock Text="{Binding VerificationStatusText}"
                                Visibility="{Binding VerificationStatusText, Converter={StaticResource StringNotEmptyToVis}}"
                                FontSize="10.5"
-                               Foreground="#E3B341"
+                               Foreground="#A0A0A0"
                                HorizontalAlignment="Center"
                                TextWrapping="Wrap"
                                MaxWidth="440"
@@ -784,8 +690,8 @@
             </Grid>
 
             <!-- Account Ownership Verification Overlay -->
-            <Border Background="#F612151A" 
-                    BorderBrush="#262C34" 
+            <Border Background="#191919" 
+                    BorderBrush="#303030" 
                     BorderThickness="1" 
                     CornerRadius="8" 
                     Visibility="{Binding IsVerificationPromptOpen, Converter={StaticResource BoolToVis}}"
@@ -810,10 +716,10 @@
                                     Cursor="SizeAll"
                                     ToolTip="Click and drag to move widget"
                                     MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown">
-                            <TextBlock Text="ACCOUNT OWNERSHIP VERIFICATION" FontSize="10.5" FontWeight="Bold" Foreground="#7D8590"/>
-                            <TextBlock Text=" — @" FontSize="10.5" Foreground="#555E69"/>
-                            <TextBlock Text="{Binding Username}" FontSize="11" FontWeight="Bold" Foreground="#58A6FF"/>
-                            <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#3A414B" Margin="5,0,0,0"/>
+                            <TextBlock Text="ACCOUNT OWNERSHIP VERIFICATION" FontSize="10.5" FontWeight="Bold" Foreground="#EEEEEE"/>
+                            <TextBlock Text=" — @" FontSize="10.5" Foreground="#707070"/>
+                            <TextBlock Text="{Binding Username}" FontSize="11" FontWeight="Bold" Foreground="#EEEEEE"/>
+                            <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#505050" Margin="5,0,0,0"/>
                         </StackPanel>
                         <Button Content="✕" 
                                 Command="{Binding CancelVerificationCommand}" 
@@ -829,8 +735,8 @@
                     <StackPanel Grid.Row="1" Margin="0,0,0,8">
                         <!-- Step 1: Copy Token -->
                         <TextBlock Text="1. Copy your temporary challenge token below (valid for 15 minutes):" 
-                                   FontSize="10.5" Foreground="#7D8590" Margin="0,0,0,4"/>
-                        <Border Background="#161B22" BorderBrush="#262C34" BorderThickness="1" CornerRadius="4" Padding="10,4" Margin="0,0,0,8">
+                                   FontSize="10.5" Foreground="#A0A0A0" Margin="0,0,0,4"/>
+                        <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="10,4" Margin="0,0,0,8">
                             <DockPanel>
                                 <Button Content="📋 Copy" 
                                         Command="{Binding CopyVerificationTokenCommand}" 
@@ -843,7 +749,7 @@
                                 <TextBox Text="{Binding VerificationToken, Mode=OneWay}" 
                                          IsReadOnly="True" 
                                          Background="Transparent" 
-                                         Foreground="#3FB950" 
+                                         Foreground="#EEEEEE" 
                                          FontFamily="Consolas, monospace" 
                                          FontSize="11.5" 
                                          BorderThickness="0" 
@@ -863,21 +769,21 @@
                                     FontWeight="SemiBold"
                                     ToolTip="Opens https://leetcode.com/profile in your default browser"/>
                             <TextBlock Text="2. Paste the token into your LeetCode profile 'About Me' bio:" 
-                                       FontSize="10.5" Foreground="#7D8590" VerticalAlignment="Center"/>
+                                       FontSize="10.5" Foreground="#A0A0A0" VerticalAlignment="Center"/>
                         </DockPanel>
 
                         <!-- Step 3: Save and Verify -->
                         <TextBlock Text="3. Click 'Save' on LeetCode, then click 'Verify Ownership' below." 
-                                   FontSize="10.5" Foreground="#7D8590" Margin="0,0,0,2"/>
+                                   FontSize="10.5" Foreground="#A0A0A0" Margin="0,0,0,2"/>
                         <TextBlock Text="(You can safely remove the token from your profile immediately after verification.)" 
-                                   FontSize="9.5" FontStyle="Italic" Foreground="#555E69"/>
+                                   FontSize="9.5" FontStyle="Italic" Foreground="#707070"/>
                     </StackPanel>
 
                     <!-- Status message -->
                     <TextBlock Grid.Row="2" 
                                Text="{Binding VerificationStatusText}" 
                                FontSize="10.5" 
-                               Foreground="#E3B341" 
+                               Foreground="#A0A0A0" 
                                TextWrapping="Wrap" 
                                Margin="0,0,0,8"/>
 
@@ -892,7 +798,7 @@
                         <Button Content="Verify Ownership" 
                                 Command="{Binding CheckVerificationCommand}" 
                                 IsEnabled="{Binding IsVerifying, Converter={StaticResource InverseBoolToVis}}"
-                                Style="{StaticResource GreenActionButton}"
+                                Style="{StaticResource PrimaryActionButton}"
                                 Padding="16,4" 
                                 FontSize="11"/>
                     </StackPanel>

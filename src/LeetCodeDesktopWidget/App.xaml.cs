@@ -60,6 +60,12 @@ public partial class App : Application
                 refreshCoordinator,
                 verificationService);
 
+            if (e.Args.Length > 0 && Array.Exists(e.Args, a => a.Equals("--verify-prompt", StringComparison.OrdinalIgnoreCase)))
+            {
+                viewModel.Username = "manav_chaudhary01";
+                viewModel.StartVerificationCommand.Execute(null);
+            }
+
             var mainWindow = new MainWindow(viewModel);
             MainWindow = mainWindow;
             mainWindow.Show();
