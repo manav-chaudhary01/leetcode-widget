@@ -2,12 +2,14 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using LeetCodeDesktopWidget.Helpers;
 using LeetCodeDesktopWidget.Models;
 
 namespace LeetCodeDesktopWidget.Services;
 
 /// <summary>
 /// Manages persistent local JSON configuration for widget user settings.
+/// Enforces test isolation and one-time verification-version migration.
 /// </summary>
 public class ConfigurationService : IConfigurationService
 {
@@ -22,10 +24,51 @@ public class ConfigurationService : IConfigurationService
 
     public ConfigurationService(string? customPath = null)
     {
-        ConfigFilePath = customPath ?? Path.Combine(
+        ConfigFilePath = customPath ?? GetDefaultConfigPath();
+    }
+
+    /// <summary>
+    /// Computes the default configuration path.
+    /// Redirects to an isolated temporary directory if running under a test framework (xUnit/testhost).
+    /// </summary>
+    public static string GetDefaultConfigPath()
+    {
+        if (IsRunningUnderTests())
+        {
+            string testDir = Path.Combine(Path.GetTempPath(), "LeetCodeWidget_TestIsolation");
+            Directory.CreateDirectory(testDir);
+            return Path.Combine(testDir, "test_config.json");
+        }
+
+        return Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "LeetCodeDesktopWidget",
             "config.json");
+    }
+
+    /// <summary>
+    /// Detects if execution is currently inside an xUnit or test runner process.
+    /// </summary>
+    public static bool IsRunningUnderTests()
+    {
+        try
+        {
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var asm in assemblies)
+            {
+                string? name = asm.GetName().Name;
+                if (name != null && (name.Contains("xunit", StringComparison.OrdinalIgnoreCase) ||
+                                     name.Contains("testhost", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return true;
+                }
+            }
+        }
+        catch
+        {
+            // Fallback safely
+        }
+        return false;
     }
 
     public Task<WidgetConfig> LoadConfigurationAsync()
@@ -51,9 +94,48 @@ public class ConfigurationService : IConfigurationService
                     return Task.FromResult(WidgetConfig.Default);
                 }
 
-                // Sanitize username
                 var sanitizedUser = WidgetConfig.SanitizeUsername(config.Username);
                 var sanitizedVerifiedUser = WidgetConfig.SanitizeUsername(config.VerifiedUsername);
+
+                // ONE-TIME VERIFICATION-VERSION MIGRATION:
+                // If a configuration record was created before Version 2 (missing VerificationVersion in JSON
+                // or version < CurrentVerificationVersion), invalidate the unproven verification immediately
+                // and persist the migrated state.
+                bool isLegacy = !json.Contains("\"VerificationVersion\"", StringComparison.OrdinalIgnoreCase) ||
+                                config.VerificationVersion < WidgetConfig.CurrentVerificationVersion;
+
+                if (isLegacy && !string.IsNullOrWhiteSpace(sanitizedVerifiedUser))
+                {
+                    SyncLogger.Log(1, "Verification version migration",
+                        $"Migrated config to version {WidgetConfig.CurrentVerificationVersion}. Invalidated unproven verification for '{sanitizedVerifiedUser}'.");
+
+                    config = config with
+                    {
+                        VerificationVersion = WidgetConfig.CurrentVerificationVersion,
+                        VerifiedUsername = "",
+                        VerifiedAt = null,
+                        VerificationChallengeCode = ""
+                    };
+                    sanitizedVerifiedUser = "";
+
+                    try
+                    {
+                        var dir = Path.GetDirectoryName(ConfigFilePath);
+                        if (!string.IsNullOrEmpty(dir))
+                        {
+                            Directory.CreateDirectory(dir);
+                        }
+                        var updatedJson = JsonSerializer.Serialize(config, JsonOptions);
+                        var tempPath = ConfigFilePath + ".tmp";
+                        File.WriteAllText(tempPath, updatedJson);
+                        File.Move(tempPath, ConfigFilePath, overwrite: true);
+                    }
+                    catch
+                    {
+                        // Ignore persistence failure during migration read
+                    }
+                }
+
                 return Task.FromResult(config with
                 {
                     Username = sanitizedUser,
@@ -85,6 +167,7 @@ public class ConfigurationService : IConfigurationService
 
                 var sanitized = config with
                 {
+                    VerificationVersion = WidgetConfig.CurrentVerificationVersion,
                     Username = WidgetConfig.SanitizeUsername(config.Username),
                     VerifiedUsername = WidgetConfig.SanitizeUsername(config.VerifiedUsername),
                     RefreshIntervalMinutes = Math.Clamp(config.RefreshIntervalMinutes, 5, 1440)

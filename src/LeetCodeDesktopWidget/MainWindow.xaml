@@ -275,7 +275,8 @@
                                 CornerRadius="3"
                                 Margin="2,1"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -324,6 +325,10 @@
                                               Content="{TemplateBinding SelectionBoxItem}"
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                               ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"
+                                              TextElement.FontSize="{TemplateBinding FontSize}"
+                                              TextElement.FontWeight="{TemplateBinding FontWeight}"
+                                              TextElement.FontFamily="{TemplateBinding FontFamily}"
                                               Margin="7,2,16,2"
                                               VerticalAlignment="Center"
                                               HorizontalAlignment="Left"/>
@@ -526,13 +531,32 @@
                         <!-- Controls Row: Year Dropdown & Refresh Button -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,4">
                             <ComboBox ItemsSource="{Binding AvailableYears}"
-                                      SelectedItem="{Binding SelectedYear}"
+                                      SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectedValue="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
                                       Style="{StaticResource DarkYearComboBox}"
                                       Width="72"
                                       Height="24"
                                       Margin="0,0,6,0"
                                       Focusable="False"/>
+
+                            <!-- Empty state indicator when account has 0 active years -->
+                            <Border Visibility="{Binding HasAvailableYears, Converter={StaticResource InverseBoolToVis}}"
+                                    Background="#222222"
+                                    BorderBrush="#303030"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Width="72"
+                                    Height="24"
+                                    Margin="0,0,6,0"
+                                    ToolTip="No active years found for this account">
+                                <TextBlock Text="No years"
+                                           Foreground="#707070"
+                                           FontSize="10"
+                                           FontWeight="SemiBold"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
 
                             <Button Content="↻" 
                                     Command="{Binding RefreshCommand}" 

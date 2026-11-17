@@ -123,7 +123,7 @@ public class AccountVerificationService : IAccountVerificationService
                 _currentChallenge = null;
             }
 
-            return VerificationResult.Success(normalized, DateTime.UtcNow);
+            return VerificationResult.Success(normalized, DateTime.UtcNow, activeChallenge.Token);
         }
 
         return VerificationResult.Failure($"Verification token '{activeChallenge.Token}' was not found in your LeetCode 'About Me' profile. Please paste the token into your LeetCode profile bio, save changes, and try again.");

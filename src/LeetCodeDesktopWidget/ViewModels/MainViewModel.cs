@@ -38,8 +38,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private string _username = "";
     private string _usernameBeforeEdit = "";
     private bool _isEditingUsername;
+    private int _verificationVersion = WidgetConfig.CurrentVerificationVersion;
     private string _verifiedUsername = "";
     private DateTime? _verifiedAt;
+    private string _verificationChallengeCode = "";
     private bool _isVerificationPromptOpen;
     private bool _isVerifying;
     private string _verificationToken = "";
@@ -160,7 +162,16 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             if (_verifiedUsername != value)
             {
                 _verifiedUsername = value;
+                if (!string.IsNullOrWhiteSpace(value) && !_verifiedAt.HasValue)
+                {
+                    _verifiedAt = DateTime.UtcNow;
+                }
+                else if (string.IsNullOrWhiteSpace(value))
+                {
+                    _verifiedAt = null;
+                }
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(VerifiedAt));
                 OnPropertyChanged(nameof(IsAccountVerified));
                 OnPropertyChanged(nameof(VerificationBadgeTooltip));
                 OnPropertyChanged(nameof(CanDisplayActivity));
@@ -183,9 +194,15 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    public bool IsAccountVerified => !string.IsNullOrWhiteSpace(_verifiedUsername) &&
-                                     !string.IsNullOrWhiteSpace(Username) &&
-                                     string.Equals(Username, _verifiedUsername, StringComparison.OrdinalIgnoreCase);
+    public bool IsAccountVerified =>
+        _verificationVersion >= WidgetConfig.CurrentVerificationVersion &&
+        !string.IsNullOrWhiteSpace(_verifiedUsername) &&
+        !string.IsNullOrWhiteSpace(Username) &&
+        string.Equals(Username, _verifiedUsername, StringComparison.OrdinalIgnoreCase) &&
+        _verifiedAt.HasValue;
+
+    public int VerificationVersion => _verificationVersion;
+    public string VerificationChallengeCode => _verificationChallengeCode;
 
     public string VerificationBadgeTooltip => IsAccountVerified
         ? $"Verified ownership of @{Username} ({_verifiedAt?.ToLocalTime():yyyy-MM-dd})"
@@ -442,6 +459,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
             if (result.IsSuccess)
             {
+                _verificationVersion = WidgetConfig.CurrentVerificationVersion;
+                _verificationChallengeCode = result.VerificationChallengeToken ?? "";
                 VerifiedUsername = result.VerifiedUsername ?? Username;
                 VerifiedAt = result.VerifiedAtUtc ?? DateTime.UtcNow;
                 IsVerificationPromptOpen = false;
@@ -461,7 +480,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                     if (string.Equals(cleanCached, cleanVerified, StringComparison.OrdinalIgnoreCase))
                     {
                         _lastSuccessfulStats = cached.ToUserStats();
-                        PopulateActiveYears(_lastSuccessfulStats.ActiveYears);
+                        PopulateActiveYears(_lastSuccessfulStats.ActiveYears, isAccountSwitchOrVerification: true);
                         _streaks = StreakCalculationService.CalculateStreaks(
                             _lastSuccessfulStats.SubmissionCounts,
                             ReferenceDate);
@@ -546,9 +565,11 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    public void SetVerifiedForTesting(string username, DateTime? verifiedAt = null, LeetCodeUserStats? stats = null)
+    public void SetVerifiedForTesting(string username, DateTime? verifiedAt = null, LeetCodeUserStats? stats = null, string? challengeCode = null)
     {
         var sanitized = WidgetConfig.SanitizeUsername(username);
+        _verificationVersion = WidgetConfig.CurrentVerificationVersion;
+        _verificationChallengeCode = challengeCode ?? "lc-verify-test-code-000000";
         _username = sanitized;
         _usernameBeforeEdit = sanitized;
         _verifiedUsername = sanitized;
@@ -556,7 +577,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         if (stats != null)
         {
             _lastSuccessfulStats = stats;
-            PopulateActiveYears(stats.ActiveYears);
+            PopulateActiveYears(stats.ActiveYears, isAccountSwitchOrVerification: true);
             _streaks = StreakCalculationService.CalculateStreaks(stats.SubmissionCounts, ReferenceDate);
         }
         else if (_lastSuccessfulStats == null)
@@ -567,7 +588,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 ActiveYears = new List<int> { SelectedYear },
                 LastSyncedAt = DateTime.UtcNow
             };
-            PopulateActiveYears(_lastSuccessfulStats.ActiveYears);
+            PopulateActiveYears(_lastSuccessfulStats.ActiveYears, isAccountSwitchOrVerification: true);
         }
         UpdateActivityForSelectedYear();
         NotifyStatsChanged();
@@ -595,12 +616,12 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             OnPropertyChanged(nameof(DisplayUsername));
         }
 
-        if (!string.IsNullOrWhiteSpace(config.VerifiedUsername) &&
-            !string.IsNullOrWhiteSpace(config.Username) &&
-            string.Equals(config.Username, config.VerifiedUsername, StringComparison.OrdinalIgnoreCase))
+        if (config.IsAccountVerified)
         {
+            _verificationVersion = config.VerificationVersion;
             _verifiedUsername = config.VerifiedUsername;
             _verifiedAt = config.VerifiedAt;
+            _verificationChallengeCode = config.VerificationChallengeCode;
             OnPropertyChanged(nameof(VerifiedUsername));
             OnPropertyChanged(nameof(VerifiedAt));
             OnPropertyChanged(nameof(IsAccountVerified));
@@ -609,20 +630,26 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
         else
         {
+            _verificationVersion = WidgetConfig.CurrentVerificationVersion;
             _verifiedUsername = "";
             _verifiedAt = null;
+            _verificationChallengeCode = "";
             OnPropertyChanged(nameof(VerifiedUsername));
             OnPropertyChanged(nameof(VerifiedAt));
             OnPropertyChanged(nameof(IsAccountVerified));
             OnPropertyChanged(nameof(VerificationBadgeTooltip));
-            SyncLogger.Log(2, "Verified username loaded", "No verified username configured or username mismatch");
+            SyncLogger.Log(2, "Verified username loaded", "No verified username configured or verification invalid");
         }
 
-        if (config.SelectedYear > 2000)
+        if (config.IsAccountVerified && config.SelectedYear > 2000)
         {
             _selectedYear = config.SelectedYear;
-            OnPropertyChanged(nameof(SelectedYear));
         }
+        else
+        {
+            _selectedYear = DateTime.Now.Year;
+        }
+        OnPropertyChanged(nameof(SelectedYear));
 
         _windowX = config.WindowX;
         _windowY = config.WindowY;
@@ -706,7 +733,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    public void PopulateActiveYears(IReadOnlyList<int>? activeYears)
+    public void PopulateActiveYears(IReadOnlyList<int>? activeYears, bool isAccountSwitchOrVerification = false)
     {
         Action action = () =>
         {
@@ -724,7 +751,26 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 .OrderByDescending(x => x)
                 .ToList();
 
-            if (!AvailableYears.SequenceEqual(sortedYears))
+            int currentCalYear = DateTime.Now.Year;
+            int targetYear;
+            if (isAccountSwitchOrVerification)
+            {
+                targetYear = sortedYears.Contains(currentCalYear) ? currentCalYear : sortedYears[0];
+            }
+            else
+            {
+                if (sortedYears.Contains(_selectedYear))
+                {
+                    targetYear = _selectedYear;
+                }
+                else
+                {
+                    targetYear = sortedYears.Contains(currentCalYear) ? currentCalYear : sortedYears[0];
+                }
+            }
+
+            bool collectionChanged = !AvailableYears.SequenceEqual(sortedYears);
+            if (collectionChanged)
             {
                 AvailableYears.Clear();
                 foreach (var y in sortedYears)
@@ -735,10 +781,18 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
             OnPropertyChanged(nameof(HasAvailableYears));
 
-            // Ensure SelectedYear is one of AvailableYears
-            if (sortedYears.Count > 0 && !sortedYears.Contains(SelectedYear))
+            // Ensure ViewModel SelectedYear and ComboBox SelectedItem match targetYear.
+            // When AvailableYears changes, WPF ComboBox coercively clears its selection to null.
+            // We explicitly set _selectedYear = targetYear and raise PropertyChanged(nameof(SelectedYear))
+            // so the ComboBox updates to targetYear.
+            bool yearChanged = _selectedYear != targetYear;
+            _selectedYear = targetYear;
+            OnPropertyChanged(nameof(SelectedYear));
+            UpdateActivityForSelectedYear();
+
+            if (yearChanged)
             {
-                SelectedYear = sortedYears[0];
+                _ = SaveConfigAsync();
             }
         };
 
@@ -949,18 +1003,24 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             // HARD ACCOUNT ISOLATION:
             // 1. Invalidate old account verification
+            _verificationVersion = WidgetConfig.CurrentVerificationVersion;
+            _verificationChallengeCode = "";
             VerifiedUsername = "";
             VerifiedAt = null;
+            _verificationService.CancelChallenge();
 
             // 2. Clear all in-memory stats, activity, and years from old account
             _lastSuccessfulStats = null;
             _currentActivity = null;
-            _currentYearStats = YearlyStatistics.Empty(SelectedYear);
+            _selectedYear = DateTime.Now.Year;
+            _currentYearStats = YearlyStatistics.Empty(_selectedYear);
             _streaks = StreakInfo.Empty;
             AvailableYears.Clear();
 
             UpdateActivityForSelectedYear();
             NotifyStatsChanged();
+            OnPropertyChanged(nameof(SelectedYear));
+            OnPropertyChanged(nameof(HasAvailableYears));
 
             // 3. Persist unverified state to configuration
             await SaveConfigAsync().ConfigureAwait(false);
@@ -1002,8 +1062,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 Username = Username,
                 SelectedYear = SelectedYear,
                 RefreshIntervalMinutes = (int)_refreshCoordinator.Interval.TotalMinutes,
+                VerificationVersion = _verificationVersion,
                 VerifiedUsername = _verifiedUsername,
                 VerifiedAt = _verifiedAt,
+                VerificationChallengeCode = _verificationChallengeCode,
                 WindowX = _windowX,
                 WindowY = _windowY
             }).ConfigureAwait(false);

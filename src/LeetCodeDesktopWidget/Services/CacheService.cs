@@ -8,6 +8,7 @@ namespace LeetCodeDesktopWidget.Services;
 
 /// <summary>
 /// Manages atomic persistence and retrieval of LeetCode submission activity and statistics.
+/// Enforces test isolation to prevent test suites from polluting production user caches.
 /// </summary>
 public class CacheService : ICacheService
 {
@@ -24,11 +25,25 @@ public class CacheService : ICacheService
     public CacheService(string? customPath = null)
     {
         _isCustomPath = !string.IsNullOrEmpty(customPath);
-        _baseDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "LeetCodeDesktopWidget");
+        _baseDirectory = customPath != null
+            ? Path.GetDirectoryName(customPath) ?? GetDefaultBaseDirectory()
+            : GetDefaultBaseDirectory();
 
         CacheFilePath = customPath ?? Path.Combine(_baseDirectory, "cache.json");
+    }
+
+    public static string GetDefaultBaseDirectory()
+    {
+        if (ConfigurationService.IsRunningUnderTests())
+        {
+            string testDir = Path.Combine(Path.GetTempPath(), "LeetCodeWidget_TestIsolation");
+            Directory.CreateDirectory(testDir);
+            return testDir;
+        }
+
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "LeetCodeDesktopWidget");
     }
 
     public Task<CachedActivityData?> LoadCacheAsync(string? expectedUsername = null)
