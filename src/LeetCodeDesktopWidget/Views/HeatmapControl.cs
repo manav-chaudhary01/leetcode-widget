@@ -15,9 +15,6 @@ namespace LeetCodeDesktopWidget.Views;
 /// </summary>
 public class HeatmapControl : FrameworkElement
 {
-    private const double CellSize = 11.5;
-    private const double CellSpacing = 3.0;
-    private const double Step = CellSize + CellSpacing;
     private const double GridOriginX = 28.0;
     private const double GridOriginY = 18.0;
     private const double CellCornerRadius = 1.8;
@@ -39,6 +36,10 @@ public class HeatmapControl : FrameworkElement
 
     private readonly Dictionary<(int Col, int Row), DailySubmission> _gridMap = new();
     private (int Col, int Row)? _hoveredCoord;
+
+    private double Step => CellSize + CellSpacing;
+    private int StartCol => MaxColumns.HasValue && MaxColumns.Value > 0 && MaxColumns.Value < 54 ? Math.Max(0, 54 - MaxColumns.Value) : 0;
+    private int VisibleCols => 54 - StartCol;
 
     #region Dependency Properties
 
@@ -64,6 +65,42 @@ public class HeatmapControl : FrameworkElement
     {
         get => (DailySubmission?)GetValue(HoveredSubmissionProperty);
         set => SetValue(HoveredSubmissionProperty, value);
+    }
+
+    public static readonly DependencyProperty CellSizeProperty = DependencyProperty.Register(
+        nameof(CellSize),
+        typeof(double),
+        typeof(HeatmapControl),
+        new FrameworkPropertyMetadata(11.5, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public double CellSize
+    {
+        get => (double)GetValue(CellSizeProperty);
+        set => SetValue(CellSizeProperty, value);
+    }
+
+    public static readonly DependencyProperty CellSpacingProperty = DependencyProperty.Register(
+        nameof(CellSpacing),
+        typeof(double),
+        typeof(HeatmapControl),
+        new FrameworkPropertyMetadata(3.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public double CellSpacing
+    {
+        get => (double)GetValue(CellSpacingProperty);
+        set => SetValue(CellSpacingProperty, value);
+    }
+
+    public static readonly DependencyProperty MaxColumnsProperty = DependencyProperty.Register(
+        nameof(MaxColumns),
+        typeof(int?),
+        typeof(HeatmapControl),
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public int? MaxColumns
+    {
+        get => (int?)GetValue(MaxColumnsProperty);
+        set => SetValue(MaxColumnsProperty, value);
     }
 
     #endregion
@@ -102,8 +139,7 @@ public class HeatmapControl : FrameworkElement
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        // 53 columns * 14px + origin = ~774px width, 7 rows * 14px + origin = ~120px height
-        return new Size(GridOriginX + (54 * Step), GridOriginY + (7 * Step));
+        return new Size(GridOriginX + (VisibleCols * Step), GridOriginY + (7 * Step));
     }
 
     protected override void OnRender(DrawingContext dc)
@@ -117,13 +153,13 @@ public class HeatmapControl : FrameworkElement
         DrawWeekdayLabel(dc, "Wed", 3);
         DrawWeekdayLabel(dc, "Fri", 5);
 
-        // 2. Draw Month labels at month start columns
+        // 2. Draw Month labels at month start columns (filtered by visible range)
         var monthStarts = Activity.GetMonthStartColumns();
         var culture = CultureInfo.InvariantCulture;
 
         for (int m = 1; m <= 12; m++)
         {
-            if (monthStarts.TryGetValue(m, out int col))
+            if (monthStarts.TryGetValue(m, out int col) && col >= StartCol)
             {
                 string monthName = culture.DateTimeFormat.GetAbbreviatedMonthName(m);
                 var formattedMonth = new FormattedText(
@@ -135,7 +171,7 @@ public class HeatmapControl : FrameworkElement
                     LabelBrush,
                     VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
-                double x = GridOriginX + (col * Step);
+                double x = GridOriginX + ((col - StartCol) * Step);
                 dc.DrawText(formattedMonth, new Point(x, 1));
             }
         }
@@ -143,7 +179,9 @@ public class HeatmapControl : FrameworkElement
         // 3. Draw Heatmap Squares
         foreach (var (coord, day) in _gridMap)
         {
-            double x = GridOriginX + (coord.Col * Step);
+            if (coord.Col < StartCol) continue;
+
+            double x = GridOriginX + ((coord.Col - StartCol) * Step);
             double y = GridOriginY + (coord.Row * Step);
             var rect = new Rect(x, y, CellSize, CellSize);
 
@@ -187,10 +225,11 @@ public class HeatmapControl : FrameworkElement
         base.OnMouseMove(e);
 
         var pos = e.GetPosition(this);
-        int col = (int)((pos.X - GridOriginX) / Step);
+        int visibleCol = (int)((pos.X - GridOriginX) / Step);
+        int col = visibleCol + StartCol;
         int row = (int)((pos.Y - GridOriginY) / Step);
 
-        if (pos.X >= GridOriginX && pos.Y >= GridOriginY && col >= 0 && row >= 0 && row < 7)
+        if (pos.X >= GridOriginX && pos.Y >= GridOriginY && visibleCol >= 0 && visibleCol < VisibleCols && row >= 0 && row < 7)
         {
             var coord = (col, row);
             if (_gridMap.TryGetValue(coord, out var submission))

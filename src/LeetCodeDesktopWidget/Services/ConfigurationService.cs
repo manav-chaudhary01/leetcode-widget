@@ -15,7 +15,8 @@ public class ConfigurationService : IConfigurationService
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        WriteIndented = true
+        WriteIndented = true,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
     };
 
     private readonly object _fileLock = new();
@@ -136,11 +137,14 @@ public class ConfigurationService : IConfigurationService
                     }
                 }
 
+                var preset = Enum.IsDefined(typeof(WidgetPreset), config.Preset) ? config.Preset : WidgetPreset.Standard;
+
                 return Task.FromResult(config with
                 {
                     Username = sanitizedUser,
                     VerifiedUsername = sanitizedVerifiedUser,
-                    RefreshIntervalMinutes = Math.Clamp(config.RefreshIntervalMinutes, 5, 1440)
+                    RefreshIntervalMinutes = config.RefreshIntervalMinutes <= 0 ? 0 : Math.Clamp(config.RefreshIntervalMinutes, 5, 1440),
+                    Preset = preset
                 });
             }
             catch
@@ -165,12 +169,15 @@ public class ConfigurationService : IConfigurationService
                     Directory.CreateDirectory(dir);
                 }
 
+                var preset = Enum.IsDefined(typeof(WidgetPreset), config.Preset) ? config.Preset : WidgetPreset.Standard;
+
                 var sanitized = config with
                 {
                     VerificationVersion = WidgetConfig.CurrentVerificationVersion,
                     Username = WidgetConfig.SanitizeUsername(config.Username),
                     VerifiedUsername = WidgetConfig.SanitizeUsername(config.VerifiedUsername),
-                    RefreshIntervalMinutes = Math.Clamp(config.RefreshIntervalMinutes, 5, 1440)
+                    RefreshIntervalMinutes = config.RefreshIntervalMinutes <= 0 ? 0 : Math.Clamp(config.RefreshIntervalMinutes, 5, 1440),
+                    Preset = preset
                 };
 
                 var json = JsonSerializer.Serialize(sanitized, JsonOptions);

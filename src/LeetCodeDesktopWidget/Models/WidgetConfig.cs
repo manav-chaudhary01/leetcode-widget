@@ -25,6 +25,10 @@ public record WidgetConfig
     public string VerificationChallengeCode { get; init; } = "";
     public double? WindowX { get; init; }
     public double? WindowY { get; init; }
+    public WidgetPreset Preset { get; init; } = WidgetPreset.Standard;
+    public bool LockPosition { get; init; } = false;
+    public bool RememberPosition { get; init; } = true;
+    public bool StartWithWindows { get; init; } = false;
 
     /// <summary>
     /// Verification invariant:
@@ -50,7 +54,11 @@ public record WidgetConfig
         VerifiedAt = null,
         VerificationChallengeCode = "",
         WindowX = null,
-        WindowY = null
+        WindowY = null,
+        Preset = WidgetPreset.Standard,
+        LockPosition = false,
+        RememberPosition = true,
+        StartWithWindows = false
     };
 
     /// <summary>

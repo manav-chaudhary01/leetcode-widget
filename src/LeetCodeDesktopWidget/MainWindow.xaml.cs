@@ -1,10 +1,12 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using LeetCodeDesktopWidget.Desktop;
 using LeetCodeDesktopWidget.Helpers;
+using LeetCodeDesktopWidget.Models;
 using LeetCodeDesktopWidget.Services;
 using LeetCodeDesktopWidget.ViewModels;
 
@@ -64,20 +66,12 @@ public partial class MainWindow : Window
 
             if (DataContext is MainViewModel vm)
             {
-                vm.PropertyChanged += (s, args) =>
-                {
-                    if (args.PropertyName == nameof(MainViewModel.IsEditingUsername) && vm.IsEditingUsername)
-                    {
-                        _ = Dispatcher.InvokeAsync(() =>
-                        {
-                            UsernameInputBox?.Focus();
-                            UsernameInputBox?.SelectAll();
-                        });
-                    }
-                };
+                vm.PresetChanged += OnPresetChanged;
+                vm.RequestResetPosition += OnRequestResetPosition;
 
                 await vm.InitializeAsync();
 
+                ApplyPresetDimensions(vm.CurrentPresetDimensions);
                 RestorePositionFromConfig(vm.WindowX, vm.WindowY);
 
                 if (!vm.IsAccountVerified)
@@ -86,14 +80,6 @@ public partial class MainWindow : Window
                     {
                         OnboardingUsernameBox?.Focus();
                         OnboardingUsernameBox?.SelectAll();
-                    });
-                }
-                else if (vm.IsEditingUsername)
-                {
-                    _ = Dispatcher.InvokeAsync(() =>
-                    {
-                        UsernameInputBox?.Focus();
-                        UsernameInputBox?.SelectAll();
                     });
                 }
             }
@@ -148,9 +134,64 @@ public partial class MainWindow : Window
         Top = clamped.Y;
     }
 
+    public void ApplyPresetDimensions(WidgetPresetDimensions dims)
+    {
+        Width = dims.Width;
+        Height = dims.Height;
+    }
+
+    private void OnPresetChanged(object? sender, WidgetPreset preset)
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            ApplyPresetDimensions(vm.CurrentPresetDimensions);
+            if (vm.RememberPosition)
+            {
+                var clamped = PositionHelper.ClampWindowPosition(Left, Top, Width, Height);
+                Left = clamped.X;
+                Top = clamped.Y;
+                _ = vm.SaveWindowPositionAsync(Left, Top);
+            }
+            else
+            {
+                var def = PositionHelper.GetDefaultPosition(Width, Height);
+                Left = def.X;
+                Top = def.Y;
+            }
+            EnsureVisibleOnScreen();
+            _desktopManager?.SendToBottom();
+        }
+    }
+
+    private void OnRequestResetPosition(object? sender, EventArgs e)
+    {
+        var def = PositionHelper.GetDefaultPosition(Width, Height);
+        Left = def.X;
+        Top = def.Y;
+        if (DataContext is MainViewModel vm && vm.RememberPosition)
+        {
+            _ = vm.SaveWindowPositionAsync(Left, Top);
+        }
+        EnsureVisibleOnScreen();
+        _desktopManager?.SendToBottom();
+    }
+
+    public void OnUsernameInputBoxLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox tb)
+        {
+            _ = Dispatcher.InvokeAsync(() =>
+            {
+                tb.Focus();
+                tb.SelectAll();
+            });
+        }
+    }
+
     public void OnDragHandleMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (e.LeftButton != MouseButtonState.Pressed) return;
+        if (DataContext is MainViewModel vm && vm.IsPositionLocked) return;
         if (IsInteractiveControl(e.OriginalSource as DependencyObject)) return;
 
         _isDragCandidate = true;
@@ -301,13 +342,35 @@ public partial class MainWindow : Window
         };
 
         Title = $"LeetCode Desktop Widget - {statusText}";
-        if (DesktopStatusDot != null)
-        {
-            DesktopStatusDot.ToolTip = statusText;
-        }
         if (OnboardingStatusDot != null)
         {
             OnboardingStatusDot.ToolTip = statusText;
+        }
+    }
+
+    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    {
+        base.OnPreviewKeyDown(e);
+        if (e.Key == Key.Escape)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                if (vm.IsSettingsOpen)
+                {
+                    vm.IsSettingsOpen = false;
+                    e.Handled = true;
+                }
+                else if (vm.IsVerificationPromptOpen)
+                {
+                    vm.CancelVerificationCommand.Execute(null);
+                    e.Handled = true;
+                }
+                else if (vm.IsEditingUsername)
+                {
+                    vm.CancelEditUsernameCommand.Execute(null);
+                    e.Handled = true;
+                }
+            }
         }
     }
 
@@ -331,6 +394,11 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        if (DataContext is MainViewModel vm)
+        {
+            vm.PresetChanged -= OnPresetChanged;
+            vm.RequestResetPosition -= OnRequestResetPosition;
+        }
         _desktopManager?.Dispose();
         (DataContext as IDisposable)?.Dispose();
         base.OnClosed(e);

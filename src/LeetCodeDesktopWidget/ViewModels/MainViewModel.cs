@@ -59,6 +59,99 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private DateOnly? _customReferenceDate;
     private double? _windowX;
     private double? _windowY;
+    private WidgetPreset _currentPreset = WidgetPreset.Standard;
+    private bool _isSettingsOpen;
+    private bool _isPositionLocked;
+    private bool _rememberPosition = true;
+    private bool _startWithWindows;
+
+    public event EventHandler<WidgetPreset>? PresetChanged;
+    public event EventHandler? RequestResetPosition;
+
+    public WidgetPreset CurrentPreset
+    {
+        get => _currentPreset;
+        set
+        {
+            if (_currentPreset != value)
+            {
+                _currentPreset = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CurrentPresetDimensions));
+                OnPropertyChanged(nameof(IsCompactPreset));
+                OnPropertyChanged(nameof(IsStandardPreset));
+                OnPropertyChanged(nameof(IsWidePreset));
+                OnPropertyChanged(nameof(IsLargePreset));
+                PresetChanged?.Invoke(this, value);
+                _ = SaveConfigAsync();
+            }
+        }
+    }
+
+    public WidgetPresetDimensions CurrentPresetDimensions => WidgetPresetDimensions.ForPreset(CurrentPreset);
+
+    public bool IsCompactPreset => CurrentPreset == WidgetPreset.Compact;
+    public bool IsStandardPreset => CurrentPreset == WidgetPreset.Standard;
+    public bool IsWidePreset => CurrentPreset == WidgetPreset.Wide;
+    public bool IsLargePreset => CurrentPreset == WidgetPreset.Large;
+
+    public bool IsSettingsOpen
+    {
+        get => _isSettingsOpen;
+        set
+        {
+            if (_isSettingsOpen != value)
+            {
+                _isSettingsOpen = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool IsPositionLocked
+    {
+        get => _isPositionLocked;
+        set
+        {
+            if (_isPositionLocked != value)
+            {
+                _isPositionLocked = value;
+                OnPropertyChanged();
+                _ = SaveConfigAsync();
+            }
+        }
+    }
+
+    public bool RememberPosition
+    {
+        get => _rememberPosition;
+        set
+        {
+            if (_rememberPosition != value)
+            {
+                _rememberPosition = value;
+                OnPropertyChanged();
+                _ = SaveConfigAsync();
+            }
+        }
+    }
+
+    public bool StartWithWindows
+    {
+        get => _startWithWindows;
+        set
+        {
+            if (_startWithWindows != value)
+            {
+                _startWithWindows = value;
+                OnPropertyChanged();
+                StartupHelper.SetStartWithWindows(value);
+                _ = SaveConfigAsync();
+            }
+        }
+    }
+
+    public int RefreshIntervalMinutes => _refreshCoordinator.IsRunning ? (int)_refreshCoordinator.Interval.TotalMinutes : 0;
 
     public double? WindowX
     {
@@ -387,6 +480,18 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public ICommand CancelVerificationCommand { get; }
     public ICommand CopyVerificationTokenCommand { get; }
     public ICommand OpenLeetCodeProfileCommand { get; }
+    public ICommand SelectPresetCommand { get; }
+    public ICommand OpenSettingsCommand { get; }
+    public ICommand CloseSettingsCommand { get; }
+    public ICommand ToggleSettingsCommand { get; }
+    public ICommand ToggleLockPositionCommand { get; }
+    public ICommand ToggleRememberPositionCommand { get; }
+    public ICommand ToggleStartWithWindowsCommand { get; }
+    public ICommand SetRefreshIntervalCommand { get; }
+    public ICommand ResetPositionCommand { get; }
+    public ICommand OpenDailyChallengeCommand { get; }
+    public ICommand OpenContestCommand { get; }
+    public ICommand ExitApplicationCommand { get; }
 
     public MainViewModel(
         ILeetCodeService? leetCodeService = null,
@@ -542,6 +647,86 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             }
         });
 
+        SelectPresetCommand = new RelayCommand(param =>
+        {
+            if (param is WidgetPreset preset)
+            {
+                CurrentPreset = preset;
+            }
+            else if (param is string s && Enum.TryParse<WidgetPreset>(s, true, out var parsed))
+            {
+                CurrentPreset = parsed;
+            }
+        });
+
+        OpenSettingsCommand = new RelayCommand(_ => IsSettingsOpen = true);
+        CloseSettingsCommand = new RelayCommand(_ => IsSettingsOpen = false);
+        ToggleSettingsCommand = new RelayCommand(_ => IsSettingsOpen = !IsSettingsOpen);
+
+        ToggleLockPositionCommand = new RelayCommand(_ => IsPositionLocked = !IsPositionLocked);
+        ToggleRememberPositionCommand = new RelayCommand(_ => RememberPosition = !RememberPosition);
+        ToggleStartWithWindowsCommand = new RelayCommand(_ => StartWithWindows = !StartWithWindows);
+
+        SetRefreshIntervalCommand = new RelayCommand(param =>
+        {
+            int minutes = 60;
+            if (param is int m) minutes = m;
+            else if (param is string str && int.TryParse(str, out int parsed)) minutes = parsed;
+
+            if (minutes <= 0)
+            {
+                _refreshCoordinator.Stop();
+            }
+            else
+            {
+                _refreshCoordinator.Interval = TimeSpan.FromMinutes(minutes);
+                if (!_refreshCoordinator.IsRunning)
+                {
+                    _refreshCoordinator.Start(PerformSyncAsync);
+                }
+            }
+            OnPropertyChanged(nameof(RefreshIntervalMinutes));
+            _ = SaveConfigAsync();
+        });
+
+        ResetPositionCommand = new RelayCommand(_ =>
+        {
+            RequestResetPosition?.Invoke(this, EventArgs.Empty);
+        });
+
+        OpenDailyChallengeCommand = new RelayCommand(_ =>
+        {
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://leetcode.com/problemset/all/",
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch { }
+        });
+
+        OpenContestCommand = new RelayCommand(_ =>
+        {
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://leetcode.com/contest/",
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch { }
+        });
+
+        ExitApplicationCommand = new RelayCommand(_ =>
+        {
+            System.Windows.Application.Current?.Shutdown();
+        });
+
         // Connect refresh coordinator to sync callback
         _refreshCoordinator.Start(PerformSyncAsync);
     }
@@ -656,7 +841,32 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         OnPropertyChanged(nameof(WindowX));
         OnPropertyChanged(nameof(WindowY));
 
-        _refreshCoordinator.Interval = TimeSpan.FromMinutes(config.RefreshIntervalMinutes);
+        _currentPreset = config.Preset;
+        OnPropertyChanged(nameof(CurrentPreset));
+        OnPropertyChanged(nameof(CurrentPresetDimensions));
+        OnPropertyChanged(nameof(IsCompactPreset));
+        OnPropertyChanged(nameof(IsStandardPreset));
+        OnPropertyChanged(nameof(IsWidePreset));
+        OnPropertyChanged(nameof(IsLargePreset));
+
+        _isPositionLocked = config.LockPosition;
+        OnPropertyChanged(nameof(IsPositionLocked));
+
+        _rememberPosition = config.RememberPosition;
+        OnPropertyChanged(nameof(RememberPosition));
+
+        _startWithWindows = config.StartWithWindows;
+        OnPropertyChanged(nameof(StartWithWindows));
+
+        if (config.RefreshIntervalMinutes <= 0)
+        {
+            _refreshCoordinator.Stop();
+        }
+        else
+        {
+            _refreshCoordinator.Interval = TimeSpan.FromMinutes(config.RefreshIntervalMinutes);
+        }
+        OnPropertyChanged(nameof(RefreshIntervalMinutes));
 
         // 2. Load cached activity immediately ONLY IF verified
         if (IsAccountVerified && !string.IsNullOrWhiteSpace(VerifiedUsername))
@@ -1050,7 +1260,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _windowY = y;
         OnPropertyChanged(nameof(WindowX));
         OnPropertyChanged(nameof(WindowY));
-        await SaveConfigAsync().ConfigureAwait(false);
+        if (_rememberPosition)
+        {
+            await SaveConfigAsync().ConfigureAwait(false);
+        }
     }
 
     private async Task SaveConfigAsync()
@@ -1061,13 +1274,17 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             {
                 Username = Username,
                 SelectedYear = SelectedYear,
-                RefreshIntervalMinutes = (int)_refreshCoordinator.Interval.TotalMinutes,
+                RefreshIntervalMinutes = _refreshCoordinator.IsRunning ? (int)_refreshCoordinator.Interval.TotalMinutes : 0,
                 VerificationVersion = _verificationVersion,
                 VerifiedUsername = _verifiedUsername,
                 VerifiedAt = _verifiedAt,
                 VerificationChallengeCode = _verificationChallengeCode,
                 WindowX = _windowX,
-                WindowY = _windowY
+                WindowY = _windowY,
+                Preset = _currentPreset,
+                LockPosition = _isPositionLocked,
+                RememberPosition = _rememberPosition,
+                StartWithWindows = _startWithWindows
             }).ConfigureAwait(false);
         }
         catch

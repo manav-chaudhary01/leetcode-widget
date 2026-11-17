@@ -5,10 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:LeetCodeDesktopWidget.Views"
         xmlns:vm="clr-namespace:LeetCodeDesktopWidget.ViewModels"
+        xmlns:models="clr-namespace:LeetCodeDesktopWidget.Models"
         xmlns:helpers="clr-namespace:LeetCodeDesktopWidget.Helpers"
         mc:Ignorable="d"
         Title="LeetCode Desktop Widget"
-        Height="290" Width="845"
+        Height="285" Width="845"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -218,6 +219,226 @@
             </Setter>
         </Style>
 
+        <!-- Neutral Preset Pill Button Style -->
+        <Style x:Key="PresetPillStyle" TargetType="Button">
+            <Setter Property="Background" Value="#222222"/>
+            <Setter Property="Foreground" Value="#EEEEEE"/>
+            <Setter Property="BorderBrush" Value="#303030"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="PillBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="PillBorder" Property="Background" Value="#2A2A2A"/>
+                                <Setter TargetName="PillBorder" Property="BorderBrush" Value="#505050"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Neutral Dark CheckBox -->
+        <Style x:Key="DarkCheckBox" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#EEEEEE"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid SnapsToDevicePixels="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="CheckBoxBorder"
+                                    Grid.Column="0"
+                                    Width="14" Height="14"
+                                    Background="#222222"
+                                    BorderBrush="#444444"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center">
+                                <Path x:Name="CheckGlyph"
+                                      Data="M 2 5 L 5 8 L 10 2"
+                                      Stroke="#EEEEEE"
+                                      StrokeThickness="1.5"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Visibility="Collapsed"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                            </Border>
+                            <ContentPresenter Grid.Column="1"
+                                              Margin="6,0,0,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              RecognizesAccessKey="True"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckGlyph" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="CheckBoxBorder" Property="Background" Value="#2E2E2E"/>
+                                <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="#EEEEEE"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="#707070"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Neutral Dark Menu Separator -->
+        <Style x:Key="DarkMenuSeparator" TargetType="Separator">
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Margin" Value="4,4"/>
+            <Setter Property="Background" Value="#303030"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Background="#303030" Height="1" Margin="4,3"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Neutral Dark MenuItem -->
+        <Style x:Key="DarkMenuItem" TargetType="MenuItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#EEEEEE"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- Checkmark -->
+                                <Path x:Name="CheckMark"
+                                      Grid.Column="0"
+                                      Data="M 1 4 L 4 7 L 9 1"
+                                      Stroke="#EEEEEE"
+                                      StrokeThickness="1.5"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Visibility="Collapsed"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"/>
+                                <ContentPresenter Grid.Column="1"
+                                                  ContentSource="Header"
+                                                  RecognizesAccessKey="True"
+                                                  VerticalAlignment="Center"/>
+                                <!-- Submenu Arrow -->
+                                <Path x:Name="SubmenuArrow"
+                                      Grid.Column="2"
+                                      Data="M 0 0 L 3.5 3.5 L 0 7 Z"
+                                      Fill="#A0A0A0"
+                                      Visibility="Collapsed"
+                                      Margin="8,0,2,0"
+                                      VerticalAlignment="Center"/>
+                                <Popup x:Name="PART_Popup"
+                                       AllowsTransparency="True"
+                                       Focusable="False"
+                                       IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                       Placement="Right"
+                                       PopupAnimation="Fade">
+                                    <Border Background="#191919"
+                                            BorderBrush="#303030"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Padding="4"
+                                            SnapsToDevicePixels="True">
+                                        <ScrollViewer CanContentScroll="True">
+                                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="HasItems" Value="True">
+                                <Setter TargetName="SubmenuArrow" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#2A2A2A"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Neutral Dark ContextMenu -->
+        <Style x:Key="DarkContextMenu" TargetType="ContextMenu">
+            <Setter Property="Background" Value="#191919"/>
+            <Setter Property="BorderBrush" Value="#303030"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#EEEEEE"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource DarkMenuItem}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="#191919"
+                                BorderBrush="#303030"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Padding="4"
+                                SnapsToDevicePixels="True">
+                            <ScrollViewer CanContentScroll="True">
+                                <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Custom ComboBox ToggleButton Style (Strict Monochromatic) -->
         <ControlTemplate x:Key="ComboBoxToggleButtonTemplate" TargetType="ToggleButton">
             <Border x:Name="TemplateRoot"
@@ -371,69 +592,158 @@
                 </Setter.Value>
             </Setter>
         </Style>
-    </Window.Resources>
 
-    <!-- Main Widget Surface: Strict Neutral Dark Charcoal with Subtle Border -->
-    <Border Background="#191919"
-            BorderBrush="#303030"
-            BorderThickness="1"
-            CornerRadius="10"
-            Padding="16,12"
-            SnapsToDevicePixels="True">
-        <Grid>
-            <!-- Active Verified Widget Surface (Visible only when IsAccountVerified == true) -->
-            <Grid Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}">
+        <!-- ================================================================= -->
+        <!-- PRESET TEMPLATES                                                  -->
+        <!-- ================================================================= -->
+
+        <!-- PRESET 1: COMPACT (2×2, 420×260) -->
+        <DataTemplate x:Key="CompactPresetTemplate">
+            <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/> <!-- Row 0: Top Bar with Brand & Drag Grip -->
-                    <RowDefinition Height="Auto"/> <!-- Row 1: Hero Section (Identity + Stats + Controls/Streak) -->
-                    <RowDefinition Height="Auto"/> <!-- Row 2: Activity Header Line -->
-                    <RowDefinition Height="*"/>    <!-- Row 3: Heatmap -->
-                    <RowDefinition Height="Auto"/> <!-- Row 4: Footer (Telemetry & Legend) -->
+                    <RowDefinition Height="Auto"/> <!-- Row 0: Top Bar with Brand, Drag, Controls -->
+                    <RowDefinition Height="Auto"/> <!-- Row 1: Identity & Stats Row -->
+                    <RowDefinition Height="Auto"/> <!-- Row 2: Activity Separator -->
+                    <RowDefinition Height="*"/>    <!-- Row 3: Heatmap (24 weeks) -->
+                    <RowDefinition Height="Auto"/> <!-- Row 4: Footer -->
                 </Grid.RowDefinitions>
 
-                <!-- Row 0: Top Bar (Branding & Drag Handle Only - No Clutter) -->
+                <!-- Row 0: Top Bar -->
                 <DockPanel Grid.Row="0" Margin="0,0,0,6" LastChildFill="True">
-                    <!-- Left: Brand Drag Handle -->
-                    <StackPanel x:Name="HeaderBrandDragArea"
-                                Orientation="Horizontal"
-                                DockPanel.Dock="Left"
-                                Background="Transparent"
-                                Cursor="SizeAll"
-                                ToolTip="Click and drag to move widget"
-                                MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"
-                                VerticalAlignment="Center">
-                        <Ellipse x:Name="DesktopStatusDot" Width="7.5" Height="7.5" Fill="#606060" Margin="0,0,7,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
-                        <TextBlock Text="LEETCODE" 
-                                   FontSize="10" 
-                                   FontWeight="Bold" 
-                                   Foreground="#A0A0A0" 
-                                   FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
-                                   VerticalAlignment="Center"/>
-                        <TextBlock Text=" ⋮⋮" 
-                                   FontSize="11" 
-                                   FontWeight="Bold" 
-                                   Foreground="#505050" 
-                                   FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
-                                   VerticalAlignment="Center"
-                                   Margin="4,0,0,0"/>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Background="Transparent"
+                                Cursor="SizeAll" ToolTip="Click and drag to move widget"
+                                MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown" VerticalAlignment="Center">
+                        <Ellipse Width="7" Height="7" Fill="#606060" Margin="0,0,6,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
+                        <TextBlock Text="LEETCODE" FontSize="9.5" FontWeight="Bold" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                        <TextBlock Text=" ⋮⋮" FontSize="10" FontWeight="Bold" Foreground="#505050" VerticalAlignment="Center" Margin="3,0,0,0"/>
                     </StackPanel>
 
-                    <!-- Center: Drag Fill Area -->
-                    <Border x:Name="HeaderCenterDragArea" 
-                            Background="Transparent" 
-                            Cursor="SizeAll" 
-                            ToolTip="Click and drag to move widget"
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <ComboBox ItemsSource="{Binding AvailableYears}"
+                                  SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
+                                  Style="{StaticResource DarkYearComboBox}"
+                                  Width="62" Height="22" FontSize="10" Margin="0,0,4,0" Focusable="False"/>
+                        <Button Content="↻" Command="{Binding RefreshCommand}" 
+                                IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
+                                ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}"
+                                Width="22" Height="22" FontSize="10" FontWeight="Bold" Margin="0,0,4,0"/>
+                        <Button Content="⚙" Command="{Binding OpenSettingsCommand}" 
+                                ToolTip="Settings" Style="{StaticResource DarkIconButton}"
+                                Width="22" Height="22" FontSize="10"/>
+                    </StackPanel>
+
+                    <Border Background="Transparent" Cursor="SizeAll" ToolTip="Click and drag to move widget"
                             MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"/>
                 </DockPanel>
 
-                <!-- Row 1: Neutral Clean Hero Section (Space Reclaimed from Removed Illustration) -->
+                <!-- Row 1: Identity, Solved Count & Compact Streak -->
+                <DockPanel Grid.Row="1" Margin="0,0,0,6">
+                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="@" FontSize="11" Foreground="#707070" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding DisplayUsername}" FontSize="12.5" FontWeight="Bold" Foreground="#EEEEEE"
+                                   MaxWidth="130" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                   Cursor="Hand" ToolTip="Click to change username">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Gesture="LeftClick" Command="{Binding ToggleEditUsernameCommand}"/>
+                            </TextBlock.InputBindings>
+                        </TextBlock>
+                        <Border Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}"
+                                Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="3"
+                                Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center" ToolTip="{Binding VerificationBadgeTooltip}">
+                            <TextBlock Text="verified" FontSize="8.5" FontWeight="SemiBold" Foreground="#A0A0A0"/>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding TotalSolved}" FontSize="17" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                        <TextBlock Text=" SOLVED" FontSize="9" FontWeight="Bold" Foreground="#707070" Margin="3,0,8,0" VerticalAlignment="Center"/>
+                        <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="3" Padding="6,2" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🔥" FontSize="9.5" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentStreak}" FontSize="10.5" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                                <TextBlock Text="D" FontSize="8.5" Foreground="#A0A0A0" Margin="1,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- Row 2: Activity Separator -->
+                <DockPanel Grid.Row="2" Margin="1,2,1,4">
+                    <TextBlock Text="recent activity" FontSize="9" FontWeight="SemiBold" Foreground="#707070" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                    <Rectangle Height="1" Fill="#303030" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                </DockPanel>
+
+                <!-- Row 3: Heatmap (24 columns = ~345px wide) -->
+                <views:HeatmapControl Grid.Row="3"
+                                      Activity="{Binding CurrentActivity}"
+                                      HoveredSubmission="{Binding HoveredDay, Mode=TwoWay}"
+                                      CellSize="11.5"
+                                      CellSpacing="3.0"
+                                      MaxColumns="24"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,1"/>
+
+                <!-- Row 4: Footer -->
+                <DockPanel Grid.Row="4" Margin="1,4,1,0">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding SelectedYear}" FontSize="9.5" FontWeight="Bold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" · " FontSize="9.5" Foreground="#505050"/>
+                        <TextBlock Text="{Binding YearSubmissions}" FontSize="9.5" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" subs" FontSize="9.5" Foreground="#707070"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Less" FontSize="8.5" Foreground="#707070" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <Rectangle Width="8" Height="8" RadiusX="1" RadiusY="1" Fill="#222222" Stroke="#303030" StrokeThickness="0.8" Margin="1.5,0"/>
+                        <Rectangle Width="8" Height="8" RadiusX="1" RadiusY="1" Fill="#0E3A22" Margin="1.5,0"/>
+                        <Rectangle Width="8" Height="8" RadiusX="1" RadiusY="1" Fill="#186334" Margin="1.5,0"/>
+                        <Rectangle Width="8" Height="8" RadiusX="1" RadiusY="1" Fill="#238C44" Margin="1.5,0"/>
+                        <Rectangle Width="8" Height="8" RadiusX="1" RadiusY="1" Fill="#2EB856" Margin="1.5,0"/>
+                        <TextBlock Text="More" FontSize="8.5" Foreground="#707070" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </DockPanel>
+            </Grid>
+        </DataTemplate>
+
+        <!-- PRESET 2: STANDARD (4×2, 845×285) -->
+        <DataTemplate x:Key="StandardPresetTemplate">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Row 0: Top Bar with Brand & Drag Grip -->
+                    <RowDefinition Height="Auto"/> <!-- Row 1: Hero Section -->
+                    <RowDefinition Height="Auto"/> <!-- Row 2: Activity Header Line -->
+                    <RowDefinition Height="*"/>    <!-- Row 3: Heatmap -->
+                    <RowDefinition Height="Auto"/> <!-- Row 4: Footer -->
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Top Bar -->
+                <DockPanel Grid.Row="0" Margin="0,0,0,6" LastChildFill="True">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Background="Transparent"
+                                Cursor="SizeAll" ToolTip="Click and drag to move widget"
+                                MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown" VerticalAlignment="Center">
+                        <Ellipse Width="7.5" Height="7.5" Fill="#606060" Margin="0,0,7,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
+                        <TextBlock Text="LEETCODE" FontSize="10" FontWeight="Bold" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                        <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#505050" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                    </StackPanel>
+
+                    <Button Content="⚙" Command="{Binding OpenSettingsCommand}" DockPanel.Dock="Right"
+                            ToolTip="Settings" Style="{StaticResource DarkIconButton}"
+                            Width="24" Height="22" FontSize="10.5"/>
+
+                    <Border Background="Transparent" Cursor="SizeAll" ToolTip="Click and drag to move widget"
+                            MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"/>
+                </DockPanel>
+
+                <!-- Row 1: Hero Section -->
                 <Grid Grid.Row="1" Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>    <!-- Col 0: Identity, Solved Count, Inline Difficulty -->
-                        <ColumnDefinition Width="Auto"/> <!-- Col 1: Year/Refresh Controls & Neutral Streak Box -->
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Col 0: Identity, Solved Counter & Inline Neutral Difficulty -->
+                    <!-- Col 0: Identity, Solved Counter & Inline Difficulty -->
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                         <!-- Identity Row -->
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -446,7 +756,6 @@
                                            FontSize="14" 
                                            FontWeight="Bold" 
                                            Foreground="#EEEEEE" 
-                                           FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
                                            VerticalAlignment="Center"
                                            Cursor="Hand"
                                            MaxWidth="260"
@@ -464,7 +773,6 @@
                                         Padding="4,1"
                                         FontSize="9"/>
 
-                                <!-- Subtle Neutral Verified Pill -->
                                 <Border Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}"
                                         Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="3"
                                         Padding="6,1.5" Margin="8,0,0,0" VerticalAlignment="Center"
@@ -480,9 +788,9 @@
                             <StackPanel Orientation="Horizontal" 
                                         Visibility="{Binding IsEditingUsername, Converter={StaticResource BoolToVis}}"
                                         VerticalAlignment="Center">
-                                <TextBox x:Name="UsernameInputBox"
-                                         Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
+                                <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
                                          Style="{StaticResource DarkInputBox}"
+                                         Loaded="OnUsernameInputBoxLoaded"
                                          Width="150" 
                                          FontSize="11" 
                                          Padding="4,2">
@@ -493,28 +801,18 @@
                                         <KeyBinding Key="Escape" Command="{Binding CancelEditUsernameCommand}"/>
                                     </TextBox.InputBindings>
                                 </TextBox>
-                                <Button Content="✓" 
-                                        Command="{Binding SaveUsernameCommand}" 
-                                        ToolTip="Save (Enter)"
-                                        Style="{StaticResource DarkIconButton}" 
-                                        Margin="4,0,0,0" 
-                                        Padding="6,1"/>
-                                <Button Content="✕" 
-                                        Command="{Binding CancelEditUsernameCommand}" 
-                                        ToolTip="Cancel (Esc)"
-                                        Style="{StaticResource DarkIconButton}" 
-                                        Margin="3,0,0,0" 
-                                        Padding="6,1"/>
+                                <Button Content="✓" Command="{Binding SaveUsernameCommand}" ToolTip="Save (Enter)"
+                                        Style="{StaticResource DarkIconButton}" Margin="4,0,0,0" Padding="6,1"/>
+                                <Button Content="✕" Command="{Binding CancelEditUsernameCommand}" ToolTip="Cancel (Esc)"
+                                        Style="{StaticResource DarkIconButton}" Margin="3,0,0,0" Padding="6,1"/>
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Solved Metric & Understated Single-Line Difficulty Breakdown -->
+                        <!-- Solved Metric & Inline Difficulty -->
                         <StackPanel Orientation="Horizontal" Margin="0,3,0,0" VerticalAlignment="Center">
-                            <!-- Prominent Solved Metric -->
                             <TextBlock Text="{Binding TotalSolved}" FontSize="22" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
                             <TextBlock Text="SOLVED" FontSize="10" FontWeight="Bold" Foreground="#707070" Margin="5,0,16,0" VerticalAlignment="Center"/>
 
-                            <!-- Understated Neutral Difficulty on Single Line -->
                             <TextBlock Text="{Binding EasySolved}" FontSize="11" FontWeight="SemiBold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
                             <TextBlock Text=" easy" FontSize="11" Foreground="#A0A0A0" VerticalAlignment="Center"/>
                             <TextBlock Text="  ·  " FontSize="11" Foreground="#444444" VerticalAlignment="Center"/>
@@ -526,49 +824,22 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Col 1: Year Selector, Refresh & Neutral Streak Box -->
+                    <!-- Col 1: Year Selector, Refresh & Streak Box -->
                     <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <!-- Controls Row: Year Dropdown & Refresh Button -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,4">
                             <ComboBox ItemsSource="{Binding AvailableYears}"
                                       SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      SelectedValue="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
                                       Style="{StaticResource DarkYearComboBox}"
-                                      Width="72"
-                                      Height="24"
-                                      Margin="0,0,6,0"
-                                      Focusable="False"/>
+                                      Width="72" Height="24" Margin="0,0,6,0" Focusable="False"/>
 
-                            <!-- Empty state indicator when account has 0 active years -->
-                            <Border Visibility="{Binding HasAvailableYears, Converter={StaticResource InverseBoolToVis}}"
-                                    Background="#222222"
-                                    BorderBrush="#303030"
-                                    BorderThickness="1"
-                                    CornerRadius="4"
-                                    Width="72"
-                                    Height="24"
-                                    Margin="0,0,6,0"
-                                    ToolTip="No active years found for this account">
-                                <TextBlock Text="No years"
-                                           Foreground="#707070"
-                                           FontSize="10"
-                                           FontWeight="SemiBold"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-
-                            <Button Content="↻" 
-                                    Command="{Binding RefreshCommand}" 
+                            <Button Content="↻" Command="{Binding RefreshCommand}" 
                                     IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
-                                    ToolTip="Refresh from LeetCode"
-                                    Style="{StaticResource DarkIconButton}" 
-                                    Width="26" Height="24"
-                                    FontSize="11"
-                                    FontWeight="Bold"/>
+                                    ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}" 
+                                    Width="26" Height="24" FontSize="11" FontWeight="Bold"/>
                         </StackPanel>
 
-                        <!-- Neutral Monochromatic Streak Box -->
+                        <!-- Streak Box -->
                         <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="8,3" HorizontalAlignment="Right">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="🔥" FontSize="11" Foreground="#EEEEEE" Margin="0,0,4,0" VerticalAlignment="Center"/>
@@ -583,23 +854,24 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- Row 2: Subtle Activity Header Line -->
+                <!-- Row 2: Activity Header Line -->
                 <DockPanel Grid.Row="2" Margin="2,6,2,3">
                     <TextBlock Text="activity" FontSize="10" FontWeight="SemiBold" Foreground="#A0A0A0" DockPanel.Dock="Left" VerticalAlignment="Center"/>
                     <Rectangle Height="1" Fill="#303030" Margin="10,0,0,0" VerticalAlignment="Center"/>
                 </DockPanel>
 
-                <!-- Row 3: Heatmap Grid Canvas -->
+                <!-- Row 3: Heatmap -->
                 <views:HeatmapControl Grid.Row="3"
                                       Activity="{Binding CurrentActivity}"
                                       HoveredSubmission="{Binding HoveredDay, Mode=TwoWay}"
+                                      CellSize="11.5"
+                                      CellSpacing="3.0"
                                       HorizontalAlignment="Left"
                                       VerticalAlignment="Center"
                                       Margin="0,1"/>
 
-                <!-- Row 4: Footer: Selected-Year Telemetry & Contribution Legend -->
+                <!-- Row 4: Footer -->
                 <DockPanel Grid.Row="4" Margin="2,4,2,0">
-                    <!-- Selected-Year Telemetry & Hover Info -->
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                         <TextBlock Text="{Binding SelectedYear}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE"/>
                         <TextBlock Text=" activity  ·  " FontSize="10" Foreground="#707070"/>
@@ -609,19 +881,10 @@
                         <TextBlock Text=" active days  ·  " FontSize="10" Foreground="#707070"/>
                         <TextBlock Text="{Binding YearAverageText}" FontSize="10" FontWeight="SemiBold" Foreground="#EEEEEE"/>
                         <TextBlock Text="/day avg" FontSize="10" Foreground="#707070"/>
-
-                        <!-- Soft Divider -->
                         <TextBlock Text="  |  " FontSize="10" Foreground="#303030" Margin="6,0"/>
-
-                        <!-- Hover Info Text -->
-                        <TextBlock Text="{Binding HoverInfoText}" 
-                                   FontSize="10" 
-                                   Foreground="#A0A0A0" 
-                                   MaxWidth="260"
-                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding HoverInfoText}" FontSize="10" Foreground="#A0A0A0" MaxWidth="260" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
 
-                    <!-- Right: 5-Level Contribution Legend -->
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <TextBlock Text="Less" FontSize="9" Foreground="#707070" Margin="0,0,5,0" VerticalAlignment="Center"/>
                         <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#222222" Stroke="#303030" StrokeThickness="0.8" Margin="2,0"/>
@@ -633,8 +896,377 @@
                     </StackPanel>
                 </DockPanel>
             </Grid>
+        </DataTemplate>
 
-            <!-- Minimal Onboarding Surface (Visible only when IsAccountVerified == false) -->
+        <!-- PRESET 3: WIDE (6×2, 1180×285) -->
+        <DataTemplate x:Key="WidePresetTemplate">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Row 0: Top Bar -->
+                    <RowDefinition Height="Auto"/> <!-- Row 1: 3-Column Hero Section -->
+                    <RowDefinition Height="Auto"/> <!-- Row 2: Activity Header Line -->
+                    <RowDefinition Height="*"/>    <!-- Row 3: Heatmap (Full year, larger 16.5px cells) -->
+                    <RowDefinition Height="Auto"/> <!-- Row 4: Footer -->
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Top Bar -->
+                <DockPanel Grid.Row="0" Margin="0,0,0,6" LastChildFill="True">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Background="Transparent"
+                                Cursor="SizeAll" ToolTip="Click and drag to move widget"
+                                MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown" VerticalAlignment="Center">
+                        <Ellipse Width="7.5" Height="7.5" Fill="#606060" Margin="0,0,7,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
+                        <TextBlock Text="LEETCODE" FontSize="10" FontWeight="Bold" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                        <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#505050" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                    </StackPanel>
+
+                    <Button Content="⚙" Command="{Binding OpenSettingsCommand}" DockPanel.Dock="Right"
+                            ToolTip="Settings" Style="{StaticResource DarkIconButton}"
+                            Width="24" Height="22" FontSize="10.5"/>
+
+                    <Border Background="Transparent" Cursor="SizeAll" ToolTip="Click and drag to move widget"
+                            MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"/>
+                </DockPanel>
+
+                <!-- Row 1: 3-Column Spacious Hero Section -->
+                <Grid Grid.Row="1" Margin="0,0,0,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="340"/> <!-- Identity & Total Solved -->
+                        <ColumnDefinition Width="*"/>   <!-- 3 Difficulty Cards -->
+                        <ColumnDefinition Width="Auto"/> <!-- Streak & Controls -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Col 0: Identity & Solved -->
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="@" FontSize="13" Foreground="#707070" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding DisplayUsername}" FontSize="14" FontWeight="Bold" Foreground="#EEEEEE"
+                                       VerticalAlignment="Center" Cursor="Hand" MaxWidth="180" TextTrimming="CharacterEllipsis">
+                                <TextBlock.InputBindings>
+                                    <MouseBinding Gesture="LeftClick" Command="{Binding ToggleEditUsernameCommand}"/>
+                                </TextBlock.InputBindings>
+                            </TextBlock>
+                            <Border Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}"
+                                    Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="3"
+                                    Padding="6,1.5" Margin="8,0,0,0" VerticalAlignment="Center" ToolTip="{Binding VerificationBadgeTooltip}">
+                                <TextBlock Text="verified" FontSize="9" FontWeight="SemiBold" Foreground="#A0A0A0"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TotalSolved}" FontSize="22" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                            <TextBlock Text=" PROBLEMS SOLVED" FontSize="10" FontWeight="Bold" Foreground="#707070" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Col 1: Difficulty Mini-Cards -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Easy Card -->
+                        <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="12,4" Margin="0,0,8,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding EasySolved}" FontSize="13" FontWeight="Bold" Foreground="#EEEEEE" HorizontalAlignment="Center"/>
+                                <TextBlock Text="EASY" FontSize="9" FontWeight="SemiBold" Foreground="#A0A0A0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Medium Card -->
+                        <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="12,4" Margin="0,0,8,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding MediumSolved}" FontSize="13" FontWeight="Bold" Foreground="#EEEEEE" HorizontalAlignment="Center"/>
+                                <TextBlock Text="MEDIUM" FontSize="9" FontWeight="SemiBold" Foreground="#A0A0A0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Hard Card -->
+                        <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="12,4">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding HardSolved}" FontSize="13" FontWeight="Bold" Foreground="#EEEEEE" HorizontalAlignment="Center"/>
+                                <TextBlock Text="HARD" FontSize="9" FontWeight="SemiBold" Foreground="#A0A0A0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Col 2: Streak & Year/Refresh Controls -->
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,4">
+                            <ComboBox ItemsSource="{Binding AvailableYears}"
+                                      SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
+                                      Style="{StaticResource DarkYearComboBox}"
+                                      Width="72" Height="24" Margin="0,0,6,0" Focusable="False"/>
+
+                            <Button Content="↻" Command="{Binding RefreshCommand}" 
+                                    IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
+                                    ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}" 
+                                    Width="26" Height="24" FontSize="11" FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="8,3" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🔥" FontSize="11" Foreground="#EEEEEE" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentStreak}" FontSize="12.5" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                                <TextBlock Text=" DAY STREAK" FontSize="9.5" FontWeight="SemiBold" Foreground="#A0A0A0" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="  ·  " FontSize="10" Foreground="#444444" Margin="3,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="MAX " FontSize="9" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding LongestStreak, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                                <TextBlock Text="D" FontSize="9" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Row 2: Activity Header Line -->
+                <DockPanel Grid.Row="2" Margin="2,3,2,2">
+                    <TextBlock Text="activity" FontSize="10" FontWeight="SemiBold" Foreground="#A0A0A0" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                    <Rectangle Height="1" Fill="#303030" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                </DockPanel>
+
+                <!-- Row 3: Heatmap (54 cols × 18px = 972px + 28px = 1000px wide) -->
+                <views:HeatmapControl Grid.Row="3"
+                                      Activity="{Binding CurrentActivity}"
+                                      HoveredSubmission="{Binding HoveredDay, Mode=TwoWay}"
+                                      CellSize="15.0"
+                                      CellSpacing="3.0"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Top"
+                                      Margin="0,1"/>
+
+                <!-- Row 4: Footer -->
+                <DockPanel Grid.Row="4" Margin="2,4,2,0">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding SelectedYear}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" activity  ·  " FontSize="10" Foreground="#707070"/>
+                        <TextBlock Text="{Binding YearSubmissions}" FontSize="10" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" submissions  ·  " FontSize="10" Foreground="#707070"/>
+                        <TextBlock Text="{Binding YearActiveDays}" FontSize="10" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" active days  ·  " FontSize="10" Foreground="#707070"/>
+                        <TextBlock Text="{Binding YearAverageText}" FontSize="10" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text="/day avg" FontSize="10" Foreground="#707070"/>
+                        <TextBlock Text="  |  " FontSize="10" Foreground="#303030" Margin="6,0"/>
+                        <TextBlock Text="{Binding HoverInfoText}" FontSize="10" Foreground="#A0A0A0" MaxWidth="400" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Less" FontSize="9" Foreground="#707070" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                        <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#222222" Stroke="#303030" StrokeThickness="0.8" Margin="2,0"/>
+                        <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#0E3A22" Margin="2,0"/>
+                        <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#186334" Margin="2,0"/>
+                        <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#238C44" Margin="2,0"/>
+                        <Rectangle Width="9" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="#2EB856" Margin="2,0"/>
+                        <TextBlock Text="More" FontSize="9" Foreground="#707070" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </DockPanel>
+            </Grid>
+        </DataTemplate>
+
+        <!-- PRESET 4: LARGE (6×3, 1180×410) -->
+        <DataTemplate x:Key="LargePresetTemplate">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Row 0: Top Bar -->
+                    <RowDefinition Height="Auto"/> <!-- Row 1: 5 Tactile Metric Cards -->
+                    <RowDefinition Height="Auto"/> <!-- Row 2: Activity Header Line -->
+                    <RowDefinition Height="*"/>    <!-- Row 3: Heatmap (Spacious 16.5px cells) -->
+                    <RowDefinition Height="Auto"/> <!-- Row 4: Footer -->
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Top Bar -->
+                <DockPanel Grid.Row="0" Margin="0,0,0,8" LastChildFill="True">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Background="Transparent"
+                                Cursor="SizeAll" ToolTip="Click and drag to move widget"
+                                MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown" VerticalAlignment="Center">
+                        <Ellipse Width="8" Height="8" Fill="#606060" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
+                        <TextBlock Text="LEETCODE" FontSize="11" FontWeight="Bold" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                        <TextBlock Text=" ⋮⋮" FontSize="12" FontWeight="Bold" Foreground="#505050" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <ComboBox ItemsSource="{Binding AvailableYears}"
+                                  SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
+                                  Style="{StaticResource DarkYearComboBox}"
+                                  Width="76" Height="26" Margin="0,0,6,0" Focusable="False"/>
+
+                        <Button Content="↻" Command="{Binding RefreshCommand}" 
+                                IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
+                                ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}" 
+                                Width="28" Height="26" FontSize="12" FontWeight="Bold" Margin="0,0,6,0"/>
+
+                        <Button Content="⚙" Command="{Binding OpenSettingsCommand}" 
+                                ToolTip="Settings" Style="{StaticResource DarkIconButton}"
+                                Width="28" Height="26" FontSize="11"/>
+                    </StackPanel>
+
+                    <Border Background="Transparent" Cursor="SizeAll" ToolTip="Click and drag to move widget"
+                            MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"/>
+                </DockPanel>
+
+                <!-- Row 1: 5 Tactile Metric Cards -->
+                <UniformGrid Grid.Row="1" Columns="5" Margin="0,0,0,8">
+                    <!-- Card 1: Identity & Total Solved -->
+                    <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="5" Padding="12,8" Margin="0,0,6,0">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="@" FontSize="11" Foreground="#707070"/>
+                                <TextBlock Text="{Binding DisplayUsername}" FontSize="11.5" FontWeight="Bold" Foreground="#EEEEEE"
+                                           MaxWidth="140" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding TotalSolved}" FontSize="24" FontWeight="Bold" Foreground="#EEEEEE"/>
+                            <TextBlock Text="TOTAL SOLVED" FontSize="9" FontWeight="Bold" Foreground="#707070"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 2: Easy -->
+                    <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="5" Padding="12,8" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="EASY" FontSize="9.5" FontWeight="Bold" Foreground="#A0A0A0" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding EasySolved}" FontSize="24" FontWeight="Bold" Foreground="#EEEEEE"/>
+                            <TextBlock Text="PROBLEMS" FontSize="9" Foreground="#707070"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 3: Medium -->
+                    <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="5" Padding="12,8" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="MEDIUM" FontSize="9.5" FontWeight="Bold" Foreground="#A0A0A0" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding MediumSolved}" FontSize="24" FontWeight="Bold" Foreground="#EEEEEE"/>
+                            <TextBlock Text="PROBLEMS" FontSize="9" Foreground="#707070"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 4: Hard -->
+                    <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="5" Padding="12,8" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="HARD" FontSize="9.5" FontWeight="Bold" Foreground="#A0A0A0" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding HardSolved}" FontSize="24" FontWeight="Bold" Foreground="#EEEEEE"/>
+                            <TextBlock Text="PROBLEMS" FontSize="9" Foreground="#707070"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 5: Streak -->
+                    <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="5" Padding="12,8" Margin="6,0,0,0">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="🔥 " FontSize="10"/>
+                                <TextBlock Text="ACTIVE STREAK" FontSize="9.5" FontWeight="Bold" Foreground="#A0A0A0"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding CurrentStreak}" FontSize="24" FontWeight="Bold" Foreground="#EEEEEE"/>
+                                <TextBlock Text=" DAYS" FontSize="11" FontWeight="SemiBold" Foreground="#707070" VerticalAlignment="Bottom" Margin="4,0,0,3"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding StreakSummaryText, Mode=OneWay}" FontSize="9" Foreground="#707070"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <!-- Row 2: Activity Header Line -->
+                <DockPanel Grid.Row="2" Margin="2,4,2,4">
+                    <TextBlock Text="activity" FontSize="10.5" FontWeight="SemiBold" Foreground="#A0A0A0" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                    <Rectangle Height="1" Fill="#303030" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                </DockPanel>
+
+                <!-- Row 3: Heatmap -->
+                <views:HeatmapControl Grid.Row="3"
+                                      Activity="{Binding CurrentActivity}"
+                                      HoveredSubmission="{Binding HoveredDay, Mode=TwoWay}"
+                                      CellSize="16.5"
+                                      CellSpacing="4.0"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,1"/>
+
+                <!-- Row 4: Footer -->
+                <DockPanel Grid.Row="4" Margin="2,6,2,0">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding SelectedYear}" FontSize="10.5" FontWeight="Bold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" activity  ·  " FontSize="10.5" Foreground="#707070"/>
+                        <TextBlock Text="{Binding YearSubmissions}" FontSize="10.5" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" submissions  ·  " FontSize="10.5" Foreground="#707070"/>
+                        <TextBlock Text="{Binding YearActiveDays}" FontSize="10.5" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text=" active days  ·  " FontSize="10.5" Foreground="#707070"/>
+                        <TextBlock Text="{Binding YearAverageText}" FontSize="10.5" FontWeight="SemiBold" Foreground="#EEEEEE"/>
+                        <TextBlock Text="/day avg" FontSize="10.5" Foreground="#707070"/>
+                        <TextBlock Text="  |  " FontSize="10.5" Foreground="#303030" Margin="8,0"/>
+                        <TextBlock Text="{Binding HoverInfoText}" FontSize="10.5" Foreground="#A0A0A0" MaxWidth="450" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Less" FontSize="9" Foreground="#707070" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <Rectangle Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" Fill="#222222" Stroke="#303030" StrokeThickness="0.8" Margin="2.5,0"/>
+                        <Rectangle Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" Fill="#0E3A22" Margin="2.5,0"/>
+                        <Rectangle Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" Fill="#186334" Margin="2.5,0"/>
+                        <Rectangle Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" Fill="#238C44" Margin="2.5,0"/>
+                        <Rectangle Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" Fill="#2EB856" Margin="2.5,0"/>
+                        <TextBlock Text="More" FontSize="9" Foreground="#707070" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </DockPanel>
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+
+    <!-- Main Widget Surface: Strict Neutral Dark Charcoal with Subtle Border -->
+    <Border Background="#191919"
+            BorderBrush="#303030"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="16,12"
+            SnapsToDevicePixels="True">
+
+        <!-- Right-Click Context Menu -->
+        <Border.ContextMenu>
+            <ContextMenu Style="{StaticResource DarkContextMenu}">
+                <MenuItem Header="Open LeetCode Profile" Command="{Binding OpenLeetCodeProfileCommand}"/>
+                <MenuItem Header="Open Daily Challenge" Command="{Binding OpenDailyChallengeCommand}"/>
+                <MenuItem Header="Open Contest" Command="{Binding OpenContestCommand}"/>
+                <Separator Style="{StaticResource DarkMenuSeparator}"/>
+                <MenuItem Header="Refresh from LeetCode" Command="{Binding RefreshCommand}"/>
+                <MenuItem Header="Settings..." Command="{Binding OpenSettingsCommand}"/>
+                <MenuItem Header="Widget Size">
+                    <MenuItem Header="Compact (2×2)" IsCheckable="True" IsChecked="{Binding IsCompactPreset, Mode=OneWay}"
+                              Command="{Binding SelectPresetCommand}" CommandParameter="{x:Static models:WidgetPreset.Compact}"/>
+                    <MenuItem Header="Standard (4×2)" IsCheckable="True" IsChecked="{Binding IsStandardPreset, Mode=OneWay}"
+                              Command="{Binding SelectPresetCommand}" CommandParameter="{x:Static models:WidgetPreset.Standard}"/>
+                    <MenuItem Header="Wide (6×2)" IsCheckable="True" IsChecked="{Binding IsWidePreset, Mode=OneWay}"
+                              Command="{Binding SelectPresetCommand}" CommandParameter="{x:Static models:WidgetPreset.Wide}"/>
+                    <MenuItem Header="Large (6×3)" IsCheckable="True" IsChecked="{Binding IsLargePreset, Mode=OneWay}"
+                              Command="{Binding SelectPresetCommand}" CommandParameter="{x:Static models:WidgetPreset.Large}"/>
+                </MenuItem>
+                <Separator Style="{StaticResource DarkMenuSeparator}"/>
+                <MenuItem Header="Reset Position" Command="{Binding ResetPositionCommand}"/>
+                <Separator Style="{StaticResource DarkMenuSeparator}"/>
+                <MenuItem Header="Exit" Command="{Binding ExitApplicationCommand}"/>
+            </ContextMenu>
+        </Border.ContextMenu>
+
+        <Grid>
+            <!-- ============================================================= -->
+            <!-- 1. ACTIVE VERIFIED WIDGET SURFACE (Adaptive Presets)          -->
+            <!-- ============================================================= -->
+            <ContentControl Content="{Binding}"
+                            Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}">
+                <ContentControl.Style>
+                    <Style TargetType="ContentControl">
+                        <Setter Property="ContentTemplate" Value="{StaticResource StandardPresetTemplate}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentPreset}" Value="{x:Static models:WidgetPreset.Compact}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource CompactPresetTemplate}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding CurrentPreset}" Value="{x:Static models:WidgetPreset.Standard}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource StandardPresetTemplate}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding CurrentPreset}" Value="{x:Static models:WidgetPreset.Wide}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource WidePresetTemplate}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding CurrentPreset}" Value="{x:Static models:WidgetPreset.Large}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource LargePresetTemplate}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
+            </ContentControl>
+
+            <!-- ============================================================= -->
+            <!-- 2. MINIMAL ONBOARDING SURFACE (Unverified state)               -->
+            <!-- ============================================================= -->
             <Grid Visibility="{Binding IsAccountVerified, Converter={StaticResource InverseBoolToVis}}"
                   VerticalAlignment="Center" HorizontalAlignment="Center">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="500">
@@ -648,72 +1280,43 @@
                                 MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"
                                 Margin="0,0,0,16">
                         <Ellipse x:Name="OnboardingStatusDot" Width="7.5" Height="7.5" Fill="#606060" Margin="0,0,7,0" VerticalAlignment="Center" ToolTip="Desktop Layer"/>
-                        <TextBlock Text="LEETCODE" 
-                                   FontSize="10" 
-                                   FontWeight="Bold" 
-                                   Foreground="#A0A0A0" 
-                                   FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
-                                   VerticalAlignment="Center"/>
-                        <TextBlock Text=" ⋮⋮" 
-                                   FontSize="11" 
-                                   FontWeight="Bold" 
-                                   Foreground="#505050" 
-                                   FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
-                                   VerticalAlignment="Center"
-                                   Margin="4,0,0,0"/>
+                        <TextBlock Text="LEETCODE" FontSize="10" FontWeight="Bold" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                        <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#505050" VerticalAlignment="Center" Margin="4,0,0,0"/>
                     </StackPanel>
 
                     <!-- Title -->
-                    <TextBlock Text="CONNECT YOUR ACCOUNT" 
-                               FontSize="14" 
-                               FontWeight="Bold" 
-                               Foreground="#EEEEEE" 
-                               FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
-                               HorizontalAlignment="Center" 
-                               Margin="0,0,0,6"/>
+                    <TextBlock Text="CONNECT YOUR ACCOUNT" FontSize="14" FontWeight="Bold" Foreground="#EEEEEE"
+                               HorizontalAlignment="Center" Margin="0,0,0,6"/>
 
                     <!-- Subtitle / Explanation -->
                     <TextBlock Text="Your activity and streaks will appear here once your account is verified."
-                               FontSize="11"
-                               Foreground="#A0A0A0"
-                               HorizontalAlignment="Center"
-                               TextAlignment="Center"
-                               Margin="0,0,0,16"/>
+                               FontSize="11" Foreground="#A0A0A0" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,16"/>
 
                     <!-- Input + Action -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
                         <TextBox x:Name="OnboardingUsernameBox"
                                  Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource DarkInputBox}"
-                                 Width="200"
-                                 FontSize="11.5"
-                                 Padding="8,5"
-                                 ToolTip="Enter LeetCode username">
+                                 Width="200" FontSize="11.5" Padding="8,5" ToolTip="Enter LeetCode username">
                             <TextBox.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding StartVerificationCommand}"/>
                                 <KeyBinding Key="Enter" Command="{Binding StartVerificationCommand}"/>
                             </TextBox.InputBindings>
                         </TextBox>
-                        <Button Content="Verify Ownership"
-                                Command="{Binding StartVerificationCommand}"
-                                Style="{StaticResource PrimaryActionButton}"
-                                Margin="8,0,0,0"
-                                FontSize="11.5"/>
+                        <Button Content="Verify Ownership" Command="{Binding StartVerificationCommand}"
+                                Style="{StaticResource PrimaryActionButton}" Margin="8,0,0,0" FontSize="11.5"/>
                     </StackPanel>
 
                     <!-- Status / Error Text -->
                     <TextBlock Text="{Binding VerificationStatusText}"
                                Visibility="{Binding VerificationStatusText, Converter={StaticResource StringNotEmptyToVis}}"
-                               FontSize="10.5"
-                               Foreground="#A0A0A0"
-                               HorizontalAlignment="Center"
-                               TextWrapping="Wrap"
-                               MaxWidth="440"
-                               TextAlignment="Center"/>
+                               FontSize="10.5" Foreground="#A0A0A0" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="440" TextAlignment="Center"/>
                 </StackPanel>
             </Grid>
 
-            <!-- Account Ownership Verification Overlay -->
+            <!-- ============================================================= -->
+            <!-- 3. ACCOUNT OWNERSHIP VERIFICATION OVERLAY                      -->
+            <!-- ============================================================= -->
             <Border Background="#191919" 
                     BorderBrush="#303030" 
                     BorderThickness="1" 
@@ -732,71 +1335,39 @@
 
                     <!-- Header -->
                     <DockPanel Grid.Row="0" Margin="0,0,0,10" LastChildFill="True">
-                        <StackPanel x:Name="OverlayDragArea"
-                                    Orientation="Horizontal" 
-                                    DockPanel.Dock="Left" 
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    Cursor="SizeAll"
-                                    ToolTip="Click and drag to move widget"
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center"
+                                    Background="Transparent" Cursor="SizeAll" ToolTip="Click and drag to move widget"
                                     MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown">
                             <TextBlock Text="ACCOUNT OWNERSHIP VERIFICATION" FontSize="10.5" FontWeight="Bold" Foreground="#EEEEEE"/>
                             <TextBlock Text=" — @" FontSize="10.5" Foreground="#707070"/>
                             <TextBlock Text="{Binding Username}" FontSize="11" FontWeight="Bold" Foreground="#EEEEEE"/>
                             <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#505050" Margin="5,0,0,0"/>
                         </StackPanel>
-                        <Button Content="✕" 
-                                Command="{Binding CancelVerificationCommand}" 
-                                DockPanel.Dock="Right" 
-                                HorizontalAlignment="Right"
-                                Style="{StaticResource DarkIconButton}" 
-                                Padding="6,1" 
-                                FontSize="10" 
-                                ToolTip="Close (Esc)"/>
+                        <Button Content="✕" Command="{Binding CancelVerificationCommand}" DockPanel.Dock="Right"
+                                HorizontalAlignment="Right" Style="{StaticResource DarkIconButton}" Padding="6,1" FontSize="10" ToolTip="Close (Esc)"/>
                     </DockPanel>
 
                     <!-- Instructions -->
                     <StackPanel Grid.Row="1" Margin="0,0,0,8">
-                        <!-- Step 1: Copy Token -->
                         <TextBlock Text="1. Copy your temporary challenge token below (valid for 15 minutes):" 
                                    FontSize="10.5" Foreground="#A0A0A0" Margin="0,0,0,4"/>
                         <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="10,4" Margin="0,0,0,8">
                             <DockPanel>
-                                <Button Content="📋 Copy" 
-                                        Command="{Binding CopyVerificationTokenCommand}" 
-                                        DockPanel.Dock="Right" 
-                                        Style="{StaticResource DarkIconButton}" 
-                                        Padding="10,3" 
-                                        Margin="8,0,0,0" 
-                                        FontSize="10.5" 
-                                        FontWeight="SemiBold"/>
-                                <TextBox Text="{Binding VerificationToken, Mode=OneWay}" 
-                                         IsReadOnly="True" 
-                                         Background="Transparent" 
-                                         Foreground="#EEEEEE" 
-                                         FontFamily="Consolas, monospace" 
-                                         FontSize="11.5" 
-                                         BorderThickness="0" 
-                                         VerticalAlignment="Center"/>
+                                <Button Content="📋 Copy" Command="{Binding CopyVerificationTokenCommand}" 
+                                        DockPanel.Dock="Right" Style="{StaticResource DarkIconButton}" Padding="10,3" Margin="8,0,0,0" FontSize="10.5" FontWeight="SemiBold"/>
+                                <TextBox Text="{Binding VerificationToken, Mode=OneWay}" IsReadOnly="True" 
+                                         Background="Transparent" Foreground="#EEEEEE" FontFamily="Consolas, monospace" FontSize="11.5" BorderThickness="0" VerticalAlignment="Center"/>
                             </DockPanel>
                         </Border>
 
-                        <!-- Step 2: Open LeetCode Profile Button -->
                         <DockPanel Margin="0,0,0,6">
-                            <Button Content="↗ Open LeetCode Profile" 
-                                    Command="{Binding OpenLeetCodeProfileCommand}"
-                                    DockPanel.Dock="Right"
-                                    Style="{StaticResource SecondaryActionButton}"
-                                    Padding="10,3"
-                                    Margin="8,0,0,0"
-                                    FontSize="10.5"
-                                    FontWeight="SemiBold"
+                            <Button Content="↗ Open LeetCode Profile" Command="{Binding OpenLeetCodeProfileCommand}"
+                                    DockPanel.Dock="Right" Style="{StaticResource SecondaryActionButton}" Padding="10,3" Margin="8,0,0,0" FontSize="10.5" FontWeight="SemiBold"
                                     ToolTip="Opens https://leetcode.com/profile in your default browser"/>
                             <TextBlock Text="2. Paste the token into your LeetCode profile 'About Me' bio:" 
                                        FontSize="10.5" Foreground="#A0A0A0" VerticalAlignment="Center"/>
                         </DockPanel>
 
-                        <!-- Step 3: Save and Verify -->
                         <TextBlock Text="3. Click 'Save' on LeetCode, then click 'Verify Ownership' below." 
                                    FontSize="10.5" Foreground="#A0A0A0" Margin="0,0,0,2"/>
                         <TextBlock Text="(You can safely remove the token from your profile immediately after verification.)" 
@@ -804,29 +1375,268 @@
                     </StackPanel>
 
                     <!-- Status message -->
-                    <TextBlock Grid.Row="2" 
-                               Text="{Binding VerificationStatusText}" 
-                               FontSize="10.5" 
-                               Foreground="#A0A0A0" 
-                               TextWrapping="Wrap" 
-                               Margin="0,0,0,8"/>
+                    <TextBlock Grid.Row="2" Text="{Binding VerificationStatusText}" FontSize="10.5" Foreground="#A0A0A0" TextWrapping="Wrap" Margin="0,0,0,8"/>
 
                     <!-- Action Buttons -->
                     <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Cancel" 
-                                Command="{Binding CancelVerificationCommand}" 
-                                Style="{StaticResource DarkIconButton}" 
-                                Margin="0,0,8,0" 
-                                Padding="12,4" 
-                                FontSize="11"/>
-                        <Button Content="Verify Ownership" 
-                                Command="{Binding CheckVerificationCommand}" 
+                        <Button Content="Cancel" Command="{Binding CancelVerificationCommand}" 
+                                Style="{StaticResource DarkIconButton}" Margin="0,0,8,0" Padding="12,4" FontSize="11"/>
+                        <Button Content="Verify Ownership" Command="{Binding CheckVerificationCommand}" 
                                 IsEnabled="{Binding IsVerifying, Converter={StaticResource InverseBoolToVis}}"
-                                Style="{StaticResource PrimaryActionButton}"
-                                Padding="16,4" 
-                                FontSize="11"/>
+                                Style="{StaticResource PrimaryActionButton}" Padding="16,4" FontSize="11"/>
                     </StackPanel>
                 </Grid>
+            </Border>
+
+            <!-- ============================================================= -->
+            <!-- 4. RESTRAINED NEUTRAL SETTINGS MODAL OVERLAY                  -->
+            <!-- ============================================================= -->
+            <Border Background="#E6101010"
+                    CornerRadius="8"
+                    Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVis}}"
+                    SnapsToDevicePixels="True">
+                <Border Background="#191919"
+                        BorderBrush="#303030"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="14,10"
+                        MaxWidth="460"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        SnapsToDevicePixels="True">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- Header -->
+                            <RowDefinition Height="Auto"/> <!-- Section 1: Widget Size -->
+                            <RowDefinition Height="Auto"/> <!-- Section 2: Refresh Interval -->
+                            <RowDefinition Height="Auto"/> <!-- Section 3: Account & Data -->
+                            <RowDefinition Height="Auto"/> <!-- Section 4: Desktop & Position -->
+                        </Grid.RowDefinitions>
+
+                        <!-- Header -->
+                        <DockPanel Grid.Row="0" Margin="0,0,0,8" LastChildFill="True">
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                                <TextBlock Text="SETTINGS" FontSize="10.5" FontWeight="Bold" Foreground="#EEEEEE"/>
+                            </StackPanel>
+                            <Button Content="✕" Command="{Binding CloseSettingsCommand}" DockPanel.Dock="Right"
+                                    Style="{StaticResource DarkIconButton}" Padding="5,1" FontSize="9.5" ToolTip="Close (Esc)"/>
+                        </DockPanel>
+
+                        <!-- Section 1: Widget Size Presets -->
+                        <StackPanel Grid.Row="1" Margin="0,0,0,7">
+                            <TextBlock Text="WIDGET SIZE" FontSize="8.5" FontWeight="Bold" Foreground="#707070" Margin="0,0,0,4"/>
+                            <UniformGrid Columns="4">
+                                <!-- Compact -->
+                                <Button Command="{Binding SelectPresetCommand}" CommandParameter="{x:Static models:WidgetPreset.Compact}"
+                                        Padding="6,3" Margin="0,0,3,0">
+                                    <Button.Style>
+                                        <Style BasedOn="{StaticResource PresetPillStyle}" TargetType="Button">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCompactPreset}" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                                                    <Setter Property="Background" Value="#2E2E2E"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="Compact" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="2×2" FontSize="8" Foreground="#707070" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Standard -->
+                                <Button Command="{Binding SelectPresetCommand}" CommandParameter="{x:Static models:WidgetPreset.Standard}"
+                                        Padding="6,3" Margin="2,0,2,0">
+                                    <Button.Style>
+                                        <Style BasedOn="{StaticResource PresetPillStyle}" TargetType="Button">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsStandardPreset}" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                                                    <Setter Property="Background" Value="#2E2E2E"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="Standard" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="4×2" FontSize="8" Foreground="#707070" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Wide -->
+                                <Button Command="{Binding SelectPresetCommand}" CommandParameter="{x:Static models:WidgetPreset.Wide}"
+                                        Padding="6,3" Margin="2,0,2,0">
+                                    <Button.Style>
+                                        <Style BasedOn="{StaticResource PresetPillStyle}" TargetType="Button">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsWidePreset}" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                                                    <Setter Property="Background" Value="#2E2E2E"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="Wide" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="6×2" FontSize="8" Foreground="#707070" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Large -->
+                                <Button Command="{Binding SelectPresetCommand}" CommandParameter="{x:Static models:WidgetPreset.Large}"
+                                        Padding="6,3" Margin="3,0,0,0">
+                                    <Button.Style>
+                                        <Style BasedOn="{StaticResource PresetPillStyle}" TargetType="Button">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLargePreset}" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                                                    <Setter Property="Background" Value="#2E2E2E"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="Large" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="6×3" FontSize="8" Foreground="#707070" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </UniformGrid>
+                        </StackPanel>
+
+                        <!-- Section 2: Refresh Interval -->
+                        <StackPanel Grid.Row="2" Margin="0,0,0,7">
+                            <TextBlock Text="REFRESH INTERVAL" FontSize="8.5" FontWeight="Bold" Foreground="#707070" Margin="0,0,0,4"/>
+                            <UniformGrid Columns="4">
+                                <!-- Manual -->
+                                <Button Command="{Binding SetRefreshIntervalCommand}" CommandParameter="0"
+                                        Padding="6,3" Margin="0,0,3,0">
+                                    <Button.Style>
+                                        <Style BasedOn="{StaticResource PresetPillStyle}" TargetType="Button">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RefreshIntervalMinutes}" Value="0">
+                                                    <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                                                    <Setter Property="Background" Value="#2E2E2E"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="Manual" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="On Demand" FontSize="8" Foreground="#707070" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- 15 min -->
+                                <Button Command="{Binding SetRefreshIntervalCommand}" CommandParameter="15"
+                                        Padding="6,3" Margin="2,0,2,0">
+                                    <Button.Style>
+                                        <Style BasedOn="{StaticResource PresetPillStyle}" TargetType="Button">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RefreshIntervalMinutes}" Value="15">
+                                                    <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                                                    <Setter Property="Background" Value="#2E2E2E"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="15 min" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Interval" FontSize="8" Foreground="#707070" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- 30 min -->
+                                <Button Command="{Binding SetRefreshIntervalCommand}" CommandParameter="30"
+                                        Padding="6,3" Margin="2,0,2,0">
+                                    <Button.Style>
+                                        <Style BasedOn="{StaticResource PresetPillStyle}" TargetType="Button">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RefreshIntervalMinutes}" Value="30">
+                                                    <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                                                    <Setter Property="Background" Value="#2E2E2E"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="30 min" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Interval" FontSize="8" Foreground="#707070" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- 60 min -->
+                                <Button Command="{Binding SetRefreshIntervalCommand}" CommandParameter="60"
+                                        Padding="6,3" Margin="3,0,0,0">
+                                    <Button.Style>
+                                        <Style BasedOn="{StaticResource PresetPillStyle}" TargetType="Button">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RefreshIntervalMinutes}" Value="60">
+                                                    <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                                                    <Setter Property="Background" Value="#2E2E2E"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="60 min" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Interval" FontSize="8" Foreground="#707070" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </UniformGrid>
+                        </StackPanel>
+
+                        <!-- Section 3: Account & Data -->
+                        <Border Grid.Row="3" Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="8,4" Margin="0,0,0,7">
+                            <DockPanel LastChildFill="True">
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                                    <TextBlock Text="ACCOUNT: @" FontSize="9" Foreground="#707070" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding VerifiedUsername}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                                    <Border Visibility="{Binding IsAccountVerified, Converter={StaticResource BoolToVis}}"
+                                            Background="#191919" BorderBrush="#303030" BorderThickness="1" CornerRadius="3"
+                                            Padding="4,1" Margin="5,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="verified" FontSize="8" FontWeight="SemiBold" Foreground="#A0A0A0"/>
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <Button Content="↗ Profile" Command="{Binding OpenLeetCodeProfileCommand}"
+                                            Style="{StaticResource SecondaryActionButton}" Padding="6,2" FontSize="9" Margin="0,0,4,0"/>
+                                    <Button Content="↻ Refresh Now" Command="{Binding RefreshCommand}"
+                                            Style="{StaticResource SecondaryActionButton}" Padding="6,2" FontSize="9"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- Section 4: Desktop & Position (Compact 2-Column Grid) -->
+                        <Border Grid.Row="4" Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="8,5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Checkboxes -->
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <CheckBox Content="Lock position (prevent dragging)"
+                                              IsChecked="{Binding IsPositionLocked, Mode=TwoWay}"
+                                              Style="{StaticResource DarkCheckBox}" Margin="0,0,0,2"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox Content="Remember position"
+                                                  IsChecked="{Binding RememberPosition, Mode=TwoWay}"
+                                                  Style="{StaticResource DarkCheckBox}" Margin="0,0,10,0"/>
+                                        <CheckBox Content="Start with Windows"
+                                                  IsChecked="{Binding StartWithWindows, Mode=TwoWay}"
+                                                  Style="{StaticResource DarkCheckBox}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Reset Button -->
+                                <Button Grid.Column="1" Content="Reset Position" Command="{Binding ResetPositionCommand}"
+                                        Style="{StaticResource SecondaryActionButton}" Padding="7,3" FontSize="9" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
             </Border>
         </Grid>
     </Border>
