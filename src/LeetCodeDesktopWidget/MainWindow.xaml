@@ -89,11 +89,13 @@
             <Setter Property="Foreground" Value="#A0A0A0"/>
             <Setter Property="BorderBrush" Value="#303030"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinWidth" Value="28"/>
+            <Setter Property="MinHeight" Value="26"/>
             <Setter Property="Padding" Value="6,2"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Focusable" Value="True"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -111,6 +113,10 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="BtnBorder" Property="Background" Value="#2A2A2A"/>
                                 <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#444444"/>
+                                <Setter Property="Foreground" Value="#EEEEEE"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#EEEEEE"/>
                                 <Setter Property="Foreground" Value="#EEEEEE"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
@@ -133,12 +139,13 @@
             <Setter Property="Foreground" Value="#EEEEEE"/>
             <Setter Property="BorderBrush" Value="#444444"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinHeight" Value="28"/>
             <Setter Property="Padding" Value="14,5"/>
             <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Focusable" Value="True"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -157,6 +164,9 @@
                                 <Setter TargetName="BtnBorder" Property="Background" Value="#383838"/>
                                 <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#555555"/>
                                 <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#EEEEEE"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="BtnBorder" Property="Background" Value="#222222"/>
@@ -181,11 +191,12 @@
             <Setter Property="Foreground" Value="#A0A0A0"/>
             <Setter Property="BorderBrush" Value="#303030"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinHeight" Value="26"/>
             <Setter Property="Padding" Value="10,3"/>
             <Setter Property="FontSize" Value="10.5"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, sans-serif"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Focusable" Value="True"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -203,6 +214,10 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="BtnBorder" Property="Background" Value="#2A2A2A"/>
                                 <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#444444"/>
+                                <Setter Property="Foreground" Value="#EEEEEE"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="#EEEEEE"/>
                                 <Setter Property="Foreground" Value="#EEEEEE"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
@@ -227,7 +242,7 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Focusable" Value="True"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -245,6 +260,9 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="PillBorder" Property="Background" Value="#2A2A2A"/>
                                 <Setter TargetName="PillBorder" Property="BorderBrush" Value="#505050"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="PillBorder" Property="BorderBrush" Value="#EEEEEE"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -623,14 +641,14 @@
                                   SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
                                   Style="{StaticResource DarkYearComboBox}"
-                                  Width="62" Height="22" FontSize="10" Margin="0,0,4,0" Focusable="False"/>
+                                  Width="66" Height="26" FontSize="10" Margin="0,0,4,0"/>
                         <Button Content="↻" Command="{Binding RefreshCommand}" 
                                 IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
                                 ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}"
-                                Width="22" Height="22" FontSize="10" FontWeight="Bold" Margin="0,0,4,0"/>
+                                Width="28" Height="26" FontSize="10.5" FontWeight="Bold" Margin="0,0,4,0"/>
                         <Button Content="⚙" Command="{Binding OpenSettingsCommand}" 
                                 ToolTip="Settings" Style="{StaticResource DarkIconButton}"
-                                Width="22" Height="22" FontSize="10"/>
+                                Width="28" Height="26" FontSize="10.5"/>
                     </StackPanel>
 
                     <Border Background="Transparent" Cursor="SizeAll" ToolTip="Click and drag to move widget"
@@ -728,9 +746,22 @@
                         <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#505050" VerticalAlignment="Center" Margin="4,0,0,0"/>
                     </StackPanel>
 
-                    <Button Content="⚙" Command="{Binding OpenSettingsCommand}" DockPanel.Dock="Right"
-                            ToolTip="Settings" Style="{StaticResource DarkIconButton}"
-                            Width="24" Height="22" FontSize="10.5"/>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <ComboBox ItemsSource="{Binding AvailableYears}"
+                                  SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
+                                  Style="{StaticResource DarkYearComboBox}"
+                                  Width="72" Height="26" Margin="0,0,6,0"/>
+
+                        <Button Content="↻" Command="{Binding RefreshCommand}" 
+                                IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
+                                ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}" 
+                                Width="30" Height="26" FontSize="11" FontWeight="Bold" Margin="0,0,6,0"/>
+
+                        <Button Content="⚙" Command="{Binding OpenSettingsCommand}" 
+                                ToolTip="Settings" Style="{StaticResource DarkIconButton}"
+                                Width="30" Height="26" FontSize="11"/>
+                    </StackPanel>
 
                     <Border Background="Transparent" Cursor="SizeAll" ToolTip="Click and drag to move widget"
                             MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"/>
@@ -824,34 +855,18 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Col 1: Year Selector, Refresh & Streak Box -->
-                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,4">
-                            <ComboBox ItemsSource="{Binding AvailableYears}"
-                                      SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
-                                      Style="{StaticResource DarkYearComboBox}"
-                                      Width="72" Height="24" Margin="0,0,6,0" Focusable="False"/>
-
-                            <Button Content="↻" Command="{Binding RefreshCommand}" 
-                                    IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
-                                    ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}" 
-                                    Width="26" Height="24" FontSize="11" FontWeight="Bold"/>
+                    <!-- Col 1: Streak Box -->
+                    <Border Grid.Column="1" Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="10,5" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="🔥" FontSize="11" Foreground="#EEEEEE" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding CurrentStreak}" FontSize="12.5" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                            <TextBlock Text=" DAY STREAK" FontSize="9.5" FontWeight="SemiBold" Foreground="#A0A0A0" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="  ·  " FontSize="10" Foreground="#444444" Margin="3,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="MAX " FontSize="9" FontWeight="Normal" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding LongestStreak, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                            <TextBlock Text="D" FontSize="9" FontWeight="Normal" Foreground="#A0A0A0" VerticalAlignment="Center"/>
                         </StackPanel>
-
-                        <!-- Streak Box -->
-                        <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="8,3" HorizontalAlignment="Right">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="🔥" FontSize="11" Foreground="#EEEEEE" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding CurrentStreak}" FontSize="12.5" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
-                                <TextBlock Text=" DAY STREAK" FontSize="9.5" FontWeight="SemiBold" Foreground="#A0A0A0" Margin="3,0,0,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="  ·  " FontSize="10" Foreground="#444444" Margin="3,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="MAX " FontSize="9" FontWeight="Normal" Foreground="#A0A0A0" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding LongestStreak, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
-                                <TextBlock Text="D" FontSize="9" FontWeight="Normal" Foreground="#A0A0A0" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
+                    </Border>
                 </Grid>
 
                 <!-- Row 2: Activity Header Line -->
@@ -919,9 +934,22 @@
                         <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#505050" VerticalAlignment="Center" Margin="4,0,0,0"/>
                     </StackPanel>
 
-                    <Button Content="⚙" Command="{Binding OpenSettingsCommand}" DockPanel.Dock="Right"
-                            ToolTip="Settings" Style="{StaticResource DarkIconButton}"
-                            Width="24" Height="22" FontSize="10.5"/>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <ComboBox ItemsSource="{Binding AvailableYears}"
+                                  SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
+                                  Style="{StaticResource DarkYearComboBox}"
+                                  Width="74" Height="26" Margin="0,0,6,0"/>
+
+                        <Button Content="↻" Command="{Binding RefreshCommand}" 
+                                IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
+                                ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}" 
+                                Width="30" Height="26" FontSize="11" FontWeight="Bold" Margin="0,0,6,0"/>
+
+                        <Button Content="⚙" Command="{Binding OpenSettingsCommand}" 
+                                ToolTip="Settings" Style="{StaticResource DarkIconButton}"
+                                Width="30" Height="26" FontSize="11"/>
+                    </StackPanel>
 
                     <Border Background="Transparent" Cursor="SizeAll" ToolTip="Click and drag to move widget"
                             MouseLeftButtonDown="OnDragHandleMouseLeftButtonDown"/>
@@ -985,33 +1013,18 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- Col 2: Streak & Year/Refresh Controls -->
-                    <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,4">
-                            <ComboBox ItemsSource="{Binding AvailableYears}"
-                                      SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
-                                      Style="{StaticResource DarkYearComboBox}"
-                                      Width="72" Height="24" Margin="0,0,6,0" Focusable="False"/>
-
-                            <Button Content="↻" Command="{Binding RefreshCommand}" 
-                                    IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
-                                    ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}" 
-                                    Width="26" Height="24" FontSize="11" FontWeight="Bold"/>
+                    <!-- Col 2: Streak Box -->
+                    <Border Grid.Column="2" Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="10,5" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="🔥" FontSize="11" Foreground="#EEEEEE" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding CurrentStreak}" FontSize="12.5" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                            <TextBlock Text=" DAY STREAK" FontSize="9.5" FontWeight="SemiBold" Foreground="#A0A0A0" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="  ·  " FontSize="10" Foreground="#444444" Margin="3,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="MAX " FontSize="9" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding LongestStreak, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                            <TextBlock Text="D" FontSize="9" Foreground="#A0A0A0" VerticalAlignment="Center"/>
                         </StackPanel>
-
-                        <Border Background="#222222" BorderBrush="#303030" BorderThickness="1" CornerRadius="4" Padding="8,3" HorizontalAlignment="Right">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="🔥" FontSize="11" Foreground="#EEEEEE" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding CurrentStreak}" FontSize="12.5" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
-                                <TextBlock Text=" DAY STREAK" FontSize="9.5" FontWeight="SemiBold" Foreground="#A0A0A0" Margin="3,0,0,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="  ·  " FontSize="10" Foreground="#444444" Margin="3,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="MAX " FontSize="9" Foreground="#A0A0A0" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding LongestStreak, Mode=OneWay}" FontSize="10" FontWeight="Bold" Foreground="#EEEEEE" VerticalAlignment="Center"/>
-                                <TextBlock Text="D" FontSize="9" Foreground="#A0A0A0" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
+                    </Border>
                 </Grid>
 
                 <!-- Row 2: Activity Header Line -->
@@ -1084,16 +1097,16 @@
                                   SelectedItem="{Binding SelectedYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Visibility="{Binding HasAvailableYears, Converter={StaticResource BoolToVis}}"
                                   Style="{StaticResource DarkYearComboBox}"
-                                  Width="76" Height="26" Margin="0,0,6,0" Focusable="False"/>
+                                  Width="76" Height="26" Margin="0,0,6,0"/>
 
                         <Button Content="↻" Command="{Binding RefreshCommand}" 
                                 IsEnabled="{Binding IsSyncing, Converter={StaticResource InverseBoolToVis}}"
                                 ToolTip="Refresh from LeetCode" Style="{StaticResource DarkIconButton}" 
-                                Width="28" Height="26" FontSize="12" FontWeight="Bold" Margin="0,0,6,0"/>
+                                Width="30" Height="26" FontSize="12" FontWeight="Bold" Margin="0,0,6,0"/>
 
                         <Button Content="⚙" Command="{Binding OpenSettingsCommand}" 
                                 ToolTip="Settings" Style="{StaticResource DarkIconButton}"
-                                Width="28" Height="26" FontSize="11"/>
+                                Width="30" Height="26" FontSize="11"/>
                     </StackPanel>
 
                     <Border Background="Transparent" Cursor="SizeAll" ToolTip="Click and drag to move widget"
@@ -1344,7 +1357,7 @@
                             <TextBlock Text=" ⋮⋮" FontSize="11" FontWeight="Bold" Foreground="#505050" Margin="5,0,0,0"/>
                         </StackPanel>
                         <Button Content="✕" Command="{Binding CancelVerificationCommand}" DockPanel.Dock="Right"
-                                HorizontalAlignment="Right" Style="{StaticResource DarkIconButton}" Padding="6,1" FontSize="10" ToolTip="Close (Esc)"/>
+                                HorizontalAlignment="Right" Style="{StaticResource DarkIconButton}" Width="28" Height="26" FontSize="10" ToolTip="Close (Esc)"/>
                     </DockPanel>
 
                     <!-- Instructions -->
@@ -1394,6 +1407,7 @@
             <Border Background="#E6101010"
                     CornerRadius="8"
                     Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVis}}"
+                    MouseLeftButtonDown="OnSettingsBackdropMouseLeftButtonDown"
                     SnapsToDevicePixels="True">
                 <Border Background="#191919"
                         BorderBrush="#303030"
@@ -1403,6 +1417,7 @@
                         MaxWidth="460"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
+                        MouseLeftButtonDown="OnSettingsCardMouseLeftButtonDown"
                         SnapsToDevicePixels="True">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -1419,7 +1434,7 @@
                                 <TextBlock Text="SETTINGS" FontSize="10.5" FontWeight="Bold" Foreground="#EEEEEE"/>
                             </StackPanel>
                             <Button Content="✕" Command="{Binding CloseSettingsCommand}" DockPanel.Dock="Right"
-                                    Style="{StaticResource DarkIconButton}" Padding="5,1" FontSize="9.5" ToolTip="Close (Esc)"/>
+                                    Style="{StaticResource DarkIconButton}" Width="28" Height="26" FontSize="10" ToolTip="Close (Esc)"/>
                         </DockPanel>
 
                         <!-- Section 1: Widget Size Presets -->
@@ -1630,9 +1645,13 @@
                                     </StackPanel>
                                 </StackPanel>
 
-                                <!-- Reset Button -->
-                                <Button Grid.Column="1" Content="Reset Position" Command="{Binding ResetPositionCommand}"
-                                        Style="{StaticResource SecondaryActionButton}" Padding="7,3" FontSize="9" VerticalAlignment="Center"/>
+                                <!-- Reset & Exit Actions -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="Reset Position" Command="{Binding ResetPositionCommand}"
+                                            Style="{StaticResource SecondaryActionButton}" Padding="7,3" FontSize="9" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <Button Content="Exit Widget" Command="{Binding ExitApplicationCommand}"
+                                            Style="{StaticResource SecondaryActionButton}" Padding="7,3" FontSize="9" VerticalAlignment="Center"/>
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </Grid>

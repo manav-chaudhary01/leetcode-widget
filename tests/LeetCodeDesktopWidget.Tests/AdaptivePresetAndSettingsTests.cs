@@ -527,6 +527,208 @@ public class AdaptivePresetAndSettingsTests : IDisposable
     }
 
     [Fact]
+    public void IsInteractiveControl_IdentifiesAllInteractiveControlTypes()
+    {
+        RunInSta(() =>
+        {
+            // ButtonBase and derivatives
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.Button()));
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.CheckBox()));
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.RadioButton()));
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.Primitives.ToggleButton()));
+
+            // Text inputs
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.TextBox()));
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.PasswordBox()));
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.RichTextBox()));
+
+            // Dropdowns & menus
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.ComboBox()));
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.ComboBoxItem()));
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.MenuItem()));
+
+            // Scrollbars & heatmap
+            Assert.True(MainWindow.IsInteractiveControl(new System.Windows.Controls.Primitives.ScrollBar()));
+            Assert.True(MainWindow.IsInteractiveControl(new HeatmapControl()));
+
+            // Interactive TextBlock with Hand cursor or MouseBinding
+            var handTb = new System.Windows.Controls.TextBlock { Cursor = Cursors.Hand };
+            Assert.True(MainWindow.IsInteractiveControl(handTb));
+
+            var boundTb = new System.Windows.Controls.TextBlock();
+            boundTb.InputBindings.Add(new MouseBinding());
+            Assert.True(MainWindow.IsInteractiveControl(boundTb));
+
+            // Nested child inside button
+            var innerText = new System.Windows.Controls.TextBlock { Text = "Click me" };
+            var btn = new System.Windows.Controls.Button { Content = innerText };
+            Assert.True(MainWindow.IsInteractiveControl(innerText));
+
+            // Non-interactive controls
+            Assert.False(MainWindow.IsInteractiveControl(new System.Windows.Controls.Border()));
+            Assert.False(MainWindow.IsInteractiveControl(new System.Windows.Controls.Grid()));
+            Assert.False(MainWindow.IsInteractiveControl(new System.Windows.Controls.TextBlock { Text = "Plain" }));
+            Assert.False(MainWindow.IsInteractiveControl(null));
+        });
+    }
+
+    [Fact]
+    public void MainWindow_DragInitiation_BlockedWhenSettingsOrVerificationOpen()
+    {
+        RunInSta(() =>
+        {
+            var mockLeetCode = new FakeLeetCodeService();
+            var vm = new MainViewModel(
+                mockLeetCode,
+                CreateTestConfigService(),
+                new CacheService(Path.Combine(_tempDir, "cache")),
+                new RefreshCoordinator(),
+                new AccountVerificationService(mockLeetCode));
+
+            var window = new MainWindow(vm);
+            var mouseEventArgs = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice,
+                0,
+                MouseButton.Left)
+            {
+                RoutedEvent = UIElement.MouseLeftButtonDownEvent
+            };
+
+            // 1. Settings Open -> Drag must be blocked
+            vm.IsSettingsOpen = true;
+            window.OnDragHandleMouseLeftButtonDown(window, mouseEventArgs);
+            Assert.False(window.IsDragCandidate);
+            Assert.False(window.IsDragging);
+
+            // 2. Verification Prompt Open -> Drag must be blocked
+            vm.IsSettingsOpen = false;
+            vm.IsVerificationPromptOpen = true;
+            window.OnDragHandleMouseLeftButtonDown(window, mouseEventArgs);
+            Assert.False(window.IsDragCandidate);
+            Assert.False(window.IsDragging);
+
+            // 3. Both closed and unlocked -> Drag candidate is allowed
+            vm.IsVerificationPromptOpen = false;
+            vm.IsPositionLocked = false;
+            window.OnDragHandleMouseLeftButtonDown(window, mouseEventArgs);
+            Assert.True(window.IsDragCandidate);
+        });
+    }
+
+    [Fact]
+    public void MainWindow_SettingsBackdrop_DismissesSettingsOverlay()
+    {
+        RunInSta(() =>
+        {
+            var mockLeetCode = new FakeLeetCodeService();
+            var vm = new MainViewModel(
+                mockLeetCode,
+                CreateTestConfigService(),
+                new CacheService(Path.Combine(_tempDir, "cache")),
+                new RefreshCoordinator(),
+                new AccountVerificationService(mockLeetCode))
+            {
+                IsSettingsOpen = true
+            };
+
+            var window = new MainWindow(vm);
+            var mouseEventArgs = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice,
+                0,
+                MouseButton.Left)
+            {
+                RoutedEvent = UIElement.MouseLeftButtonDownEvent
+            };
+
+            // Clicking backdrop dismisses settings
+            window.OnSettingsBackdropMouseLeftButtonDown(window, mouseEventArgs);
+            Assert.False(vm.IsSettingsOpen);
+            Assert.True(mouseEventArgs.Handled);
+
+            // Clicking card absorbs click
+            var cardEventArgs = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice,
+                0,
+                MouseButton.Left)
+            {
+                RoutedEvent = UIElement.MouseLeftButtonDownEvent
+            };
+            window.OnSettingsCardMouseLeftButtonDown(window, cardEventArgs);
+            Assert.True(cardEventArgs.Handled);
+        });
+    }
+
+    [Fact]
+    public void MainWindow_PresetTemplates_AllContainConsistentTopBarControls()
+    {
+        RunInSta(() =>
+        {
+            var mockLeetCode = new FakeLeetCodeService();
+            var vm = new MainViewModel(
+                mockLeetCode,
+                CreateTestConfigService(),
+                new CacheService(Path.Combine(_tempDir, "cache")),
+                new RefreshCoordinator(),
+                new AccountVerificationService(mockLeetCode));
+
+            var window = new MainWindow(vm);
+
+            var templateKeys = new[]
+            {
+                "CompactPresetTemplate",
+                "StandardPresetTemplate",
+                "WidePresetTemplate",
+                "LargePresetTemplate"
+            };
+
+            foreach (var key in templateKeys)
+            {
+                var template = window.Resources[key] as DataTemplate;
+                Assert.NotNull(template);
+
+                var content = template.LoadContent() as FrameworkElement;
+                Assert.NotNull(content);
+
+                // Find ComboBox (Year selector)
+                var comboBoxes = FindVisualChildren<System.Windows.Controls.ComboBox>(content);
+                Assert.NotEmpty(comboBoxes);
+
+                // Find buttons: must include Refresh and Settings
+                var buttons = FindVisualChildren<System.Windows.Controls.Button>(content);
+                Assert.True(buttons.Count >= 2, $"Template {key} should have at least 2 top bar buttons");
+
+                // Check button min dimensions / hit target consistency
+                bool hasRefresh = false;
+                bool hasSettings = false;
+                foreach (var btn in buttons)
+                {
+                    if (btn.Content is string s && s.Contains("↻")) hasRefresh = true;
+                    if (btn.Content is string s2 && s2.Contains("⚙")) hasSettings = true;
+                }
+                Assert.True(hasRefresh, $"Template {key} missing refresh button (↻)");
+                Assert.True(hasSettings, $"Template {key} missing settings button (⚙)");
+            }
+        });
+    }
+
+    private static List<T> FindVisualChildren<T>(DependencyObject depObj) where T : DependencyObject
+    {
+        var list = new List<T>();
+        if (depObj == null) return list;
+
+        int count = LogicalTreeHelper.GetChildren(depObj).OfType<object>().Count();
+        foreach (var child in LogicalTreeHelper.GetChildren(depObj))
+        {
+            if (child is DependencyObject d)
+            {
+                if (d is T match) list.Add(match);
+                list.AddRange(FindVisualChildren<T>(d));
+            }
+        }
+        return list;
+    }
+
+    [Fact]
     public void RenderPresetSnapshots_GeneratesAllPresetImages()
     {
         RunInSta(() =>

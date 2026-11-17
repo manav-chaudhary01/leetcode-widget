@@ -190,8 +190,8 @@ public partial class MainWindow : Window
 
     public void OnDragHandleMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.LeftButton != MouseButtonState.Pressed) return;
-        if (DataContext is MainViewModel vm && vm.IsPositionLocked) return;
+        if (e.LeftButton != MouseButtonState.Pressed && e.RoutedEvent != UIElement.MouseLeftButtonDownEvent) return;
+        if (DataContext is MainViewModel vm && (vm.IsPositionLocked || vm.IsSettingsOpen || vm.IsVerificationPromptOpen)) return;
         if (IsInteractiveControl(e.OriginalSource as DependencyObject)) return;
 
         _isDragCandidate = true;
@@ -292,10 +292,13 @@ public partial class MainWindow : Window
         var current = source;
         while (current != null)
         {
-            if (current is System.Windows.Controls.Button ||
-                current is System.Windows.Controls.TextBox ||
+            if (current is System.Windows.Controls.Primitives.ButtonBase ||
+                current is System.Windows.Controls.Primitives.TextBoxBase ||
+                current is System.Windows.Controls.PasswordBox ||
                 current is System.Windows.Controls.ComboBox ||
                 current is System.Windows.Controls.ComboBoxItem ||
+                current is System.Windows.Controls.MenuItem ||
+                current is System.Windows.Controls.Primitives.ScrollBar ||
                 current is Views.HeatmapControl)
             {
                 return true;
@@ -327,6 +330,21 @@ public partial class MainWindow : Window
             current = parent;
         }
         return false;
+    }
+
+    public void OnSettingsBackdropMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            vm.IsSettingsOpen = false;
+            e.Handled = true;
+        }
+    }
+
+    public void OnSettingsCardMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        // Absorb clicks inside the settings card so they do not dismiss the modal or drag the window
+        e.Handled = true;
     }
 
     private void UpdateHostStatusBadge()
